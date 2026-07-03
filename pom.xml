@@ -33,7 +33,7 @@
         <!-- app dependencies -->
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus-plugin.version>3.37.0</quarkus-plugin.version>
+        <quarkus-plugin.version>3.37.1</quarkus-plugin.version>
         <quarkus.platform.version>3.37.0</quarkus.platform.version>
 
         <slf4j-jboss-logmanager.version>2.1.0.Final</slf4j-jboss-logmanager.version>
