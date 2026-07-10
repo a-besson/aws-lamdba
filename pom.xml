@@ -38,6 +38,7 @@
 
         <slf4j-jboss-logmanager.version>2.1.0.Final</slf4j-jboss-logmanager.version>
         <lombok.version>1.18.46</lombok.version>
+        <jackson-databind.version>2.22.1</jackson-databind.version>
     </properties>
 
     <dependencyManagement>
@@ -48,6 +49,15 @@
                 <version>${quarkus.platform.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- CVE-2026-54515 (GHSA-5jmj-h7xm-6q6v): quarkus-bom 3.37.2 pins jackson-databind
+                 2.22.0, which is vulnerable. Override to the patched 2.22.1 until the platform
+                 BOM catches up. -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-databind.version}</version>
             </dependency>
 
             <dependency>
