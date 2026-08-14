@@ -34,10 +34,11 @@
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus-plugin.version>3.37.1</quarkus-plugin.version>
-        <quarkus.platform.version>3.37.2</quarkus.platform.version>
+        <quarkus.platform.version>3.37.4</quarkus.platform.version>
 
         <slf4j-jboss-logmanager.version>2.1.0.Final</slf4j-jboss-logmanager.version>
         <lombok.version>1.18.46</lombok.version>
+        <jackson-databind.version>2.22.1</jackson-databind.version>
     </properties>
 
     <dependencyManagement>
@@ -48,6 +49,14 @@
                 <version>${quarkus.platform.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- CVE fix: quarkus-bom 3.37.4 still pins jackson-databind 2.22.0.
+                 Override to 2.22.1, which fixes GHSA-5gvw-p9qm-jgwh and GHSA-5jmj-h7xm-6q6v. -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-databind.version}</version>
             </dependency>
 
             <dependency>
