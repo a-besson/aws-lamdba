@@ -1,0 +1,30 @@
+{
+    "httpMethod": "GET",
+    "path": "/demo",
+    "resource": "/{proxy+}",
+    "headers": {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    },
+    "multiValueHeaders": {
+        "Accept": ["application/json"],
+        "Content-Type": ["application/json"]
+    },
+    "queryStringParameters": null,
+    "multiValueQueryStringParameters": null,
+    "pathParameters": {
+        "proxy": "demo"
+    },
+    "requestContext": {
+        "resourcePath": "/{proxy+}",
+        "httpMethod": "GET",
+        "path": "/dev/demo",
+        "stage": "dev",
+        "requestId": "test-invoke-request",
+        "identity": {
+            "sourceIp": "127.0.0.1"
+        }
+    },
+    "body": null,
+    "isBase64Encoded": false
+}

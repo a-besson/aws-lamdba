@@ -1,0 +1,143 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: "AWS::Serverless-2016-10-31"
+Description: Architecture Serverless avec Lambda, API Gateway et CloudWatch
+
+Parameters:
+    ApiGatewayName:
+        Type: String
+        Default: demo
+    ApiGatewayStageName:
+        Type: String
+        AllowedPattern: '[a-z0-9]+'
+        Default: dev
+    LambdaName:
+        Type: String
+        Description: 'The name of the S3 Bucket to create, make this unique'
+        Default: 'abesson-lambda-springboot-lambda'
+    LambdaMemorySize:
+        Type: Number
+        Default: 512
+        Description: Taille de mémoire pour la fonction Lambda
+    LambdaTimeout:
+        Type: Number
+        Default: 30
+        Description: Délai d'expiration de la fonction Lambda en secondes
+
+Resources:
+    LambdaIAMRole:
+        Type: AWS::IAM::Role
+        Properties:
+            RoleName: SpringBootRestLambdaExecutionRole
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    -   Effect: Allow
+                        Principal:
+                            Service: lambda.amazonaws.com
+                        Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+            Policies:
+                -   PolicyName: LambdaExecutionPolicy
+                    PolicyDocument:
+                        Version: '2012-10-17'
+                        Statement:
+                            -   Effect: Allow
+                                Action:
+                                    - logs:CreateLogGroup
+                                    - logs:CreateLogStream
+                                    - logs:PutLogEvents
+                                Resource: arn:aws:logs:*:*:*
+
+    LambdaLogGroup:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: /aws/lambda/springboot-lambda-log
+            RetentionInDays: 1
+
+    LambdaMetricFilter:
+        Type: AWS::Logs::MetricFilter
+        Properties:
+            LogGroupName: !Ref LambdaLogGroup
+            FilterPattern: ""
+            MetricTransformations:
+                -   MetricValue: "1"
+                    MetricNamespace: "LambdaMetrics"
+                    MetricName: "InvocationCount"
+
+    SpringBootLambdaRestDemo:
+        Type: AWS::Serverless::Function
+        Properties:
+            Handler: com.springboot.lambda.rest.StreamLambdaHandler::handleRequest
+            Runtime: java21
+            CodeUri: ../target/springboot-lambda-api-gateway-rest.jar
+            MemorySize: !Ref LambdaMemorySize
+            Timeout: !Ref LambdaTimeout
+            Policies:
+                - AWSLambdaBasicExecutionRole
+                - CloudWatchLambdaInsightsExecutionRolePolicy
+            Layers:
+                - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14"
+            Role: !GetAtt LambdaIAMRole.Arn
+            Tracing: Active
+            LoggingConfig:
+                LogGroup: !Ref LambdaLogGroup
+            Events:
+                GetResource:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref BasicAWSApiGateway
+                        Path: /{proxy+}
+                        Method: any
+
+    lambdaApiGatewayInvoke:
+        Type: AWS::Lambda::Permission
+        DependsOn:
+            - BasicAWSApiGateway
+        Properties:
+            Action: lambda:InvokeFunction
+            FunctionName: !Ref SpringBootLambdaRestDemo
+            Principal: apigateway.amazonaws.com
+            SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${BasicAWSApiGateway}/*/*/*
+
+    BasicAWSApiGateway:
+        Type: AWS::Serverless::Api
+        Properties:
+            Name: Basic AWS Api Gateway
+            StageName: dev
+            AccessLogSetting:
+                DestinationArn: !GetAtt LambdaLogGroup.Arn
+                Format: '{ "requestId": "$context.requestId", "path": "$context.path", "requestTime": "$context.requestTime", "httpMethod": "$context.httpMethod","statusCode": "$context.status", "errorMessage": "$context.error.message" }'
+
+    ApiCWLRoleArn:
+        Type: AWS::ApiGateway::Account
+        Properties:
+            CloudWatchRoleArn: !GetAtt CloudWatchRole.Arn
+
+    # IAM Role for API Gateway + CloudWatch Logging
+    CloudWatchRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    Action: 'sts:AssumeRole'
+                    Effect: Allow
+                    Principal:
+                        Service: apigateway.amazonaws.com
+            Path: /
+            ManagedPolicyArns:
+                - 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
+
+Outputs:
+    LambdaFunctionARN:
+        Description: ARN de la fonction Lambda créée
+        Value: !GetAtt SpringBootLambdaRestDemo.Arn
+    BasicAWSApiGateway:
+        Description: 'API Gateway endpoint URL for Staging stage for Hello World function'
+        Value: !Sub 'https://${BasicAWSApiGateway}.execute-api.${AWS::Region}.amazonaws.com/dev/demo/'
+    BasicAWSApiGatewayRestApiId:
+        Description: 'API Gateway ARN for Basic AWS API Gateway'
+        Value: !Ref BasicAWSApiGateway
+        Export:
+            Name: BasicAWSApiGatewaySpringBoot-RestApiId
