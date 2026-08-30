@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS Serverless Spring Cloud Function - springboot-lambda
+
+Globals:
+    Api:
+        BinaryMediaTypes:
+            - "*/*"
+
+Resources:
+    SpringBootLambda:
+        Type: AWS::Serverless::Function
+        Properties:
+            Handler: org.springframework.cloud.function.adapter.aws.FunctionInvoker::handleRequest
+            Runtime: java21
+            CodeUri: ../target/springboot-lambda.jar
+            MemorySize: 256
+            Timeout: 15
+            Tracing: Active
+            Policies:
+                - AWSLambdaBasicExecutionRole
+                - CloudWatchLambdaInsightsExecutionRolePolicy
+            Role: !Ref SpringBootLambdaLambdaRole
+            Layers:
+                - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14"
+            Environment:
+                Variables:
+                    SPRING_CLOUD_FUNCTION_DEFINITION: demo
+            # SnapStart trims cold starts for infrequently invoked JVM functions. It requires a
+            # published version (not $LATEST), so it is left commented out for this sample - opt
+            # in by publishing a version/alias and uncommenting:
+            # SnapStart:
+            #     ApplyOn: PublishedVersions
+
+    SpringBootLambdaLambdaRole:
+        Type: AWS::IAM::Role
+        Properties:
+            RoleName: SpringBootLambdaExecutionRole
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    -   Effect: Allow
+                        Principal:
+                            Service: lambda.amazonaws.com
+                        Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+            Policies:
+                -   PolicyName: LambdaExecutionPolicy
+                    PolicyDocument:
+                        Version: '2012-10-17'
+                        Statement:
+                            -   Effect: Allow
+                                Action:
+                                    - logs:CreateLogGroup
+                                    - logs:CreateLogStream
+                                    - logs:PutLogEvents
+                                Resource: arn:aws:logs:*:*:*
+
+    SpringBootLambdaUrl:
+        Type: AWS::Lambda::Url
+        Properties:
+            AuthType: 'NONE'        # AuthType: AWS_IAM
+            TargetFunctionArn: !GetAtt SpringBootLambda.Arn
+
+    SpringBootLambdaUrlPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            FunctionName: !Ref SpringBootLambda
+            Action: lambda:InvokeFunctionUrl
+            Principal: "*"
+            FunctionUrlAuthType: 'NONE'
+
+Outputs:
+    SpringBootLambda:
+        Description: 'Spring Boot Lambda ARN'
+        Value: !GetAtt SpringBootLambda.Arn
+
+    SpringBootLambdaUrl:
+        Description: 'Spring Boot Lambda URL'
+        Value: !GetAtt SpringBootLambdaUrl.FunctionUrl

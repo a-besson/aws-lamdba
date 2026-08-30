@@ -13,6 +13,8 @@
     <modules>
         <module>quarkus-lambda</module>
         <module>quarkus-lambda-api-gateway-rest</module>
+        <module>springboot-lambda</module>
+        <module>springboot-lambda-api-gateway-rest</module>
     </modules>
 
     <properties>
@@ -33,8 +35,8 @@
         <!-- app dependencies -->
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus-plugin.version>3.39.0</quarkus-plugin.version>
-        <quarkus.platform.version>3.39.0</quarkus.platform.version>
+        <quarkus-plugin.version>3.39.1</quarkus-plugin.version>
+        <quarkus.platform.version>3.39.1</quarkus.platform.version>
 
         <slf4j-jboss-logmanager.version>2.1.0.Final</slf4j-jboss-logmanager.version>
         <lombok.version>1.18.46</lombok.version>
@@ -45,6 +47,13 @@
           2.22.1. Drop this pin once the platform BOM ships 2.22.1 or later.
         -->
         <jackson-databind.version>2.22.1</jackson-databind.version>
+
+        <!-- spring boot samples: versions live here, BOMs are imported per-module so the -->
+        <!-- Quarkus and Spring stacks never share a dependencyManagement import -->
+        <spring-boot.version>3.5.15</spring-boot.version>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
+        <aws-serverless-java-container.version>2.1.5</aws-serverless-java-container.version>
+        <aws-lambda-java-core.version>1.4.0</aws-lambda-java-core.version>
     </properties>
 
     <dependencyManagement>
