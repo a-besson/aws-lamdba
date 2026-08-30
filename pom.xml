@@ -35,11 +35,18 @@
         <!-- app dependencies -->
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus-plugin.version>3.37.1</quarkus-plugin.version>
-        <quarkus.platform.version>3.37.2</quarkus.platform.version>
+        <quarkus-plugin.version>3.39.1</quarkus-plugin.version>
+        <quarkus.platform.version>3.39.1</quarkus.platform.version>
 
         <slf4j-jboss-logmanager.version>2.1.0.Final</slf4j-jboss-logmanager.version>
         <lombok.version>1.18.46</lombok.version>
+
+        <!--
+          Transitive pin: the Quarkus BOM resolves jackson-databind 2.22.0, which is
+          still affected by CVE-2026-54515 and CVE-2026-59889. Both are fixed in
+          2.22.1. Drop this pin once the platform BOM ships 2.22.1 or later.
+        -->
+        <jackson-databind.version>2.22.1</jackson-databind.version>
 
         <!-- spring boot samples: versions live here, BOMs are imported per-module so the -->
         <!-- Quarkus and Spring stacks never share a dependencyManagement import -->
@@ -59,6 +66,11 @@
                 <scope>import</scope>
             </dependency>
 
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-databind.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.jboss.slf4j</groupId>
                 <artifactId>slf4j-jboss-logmanager</artifactId>
