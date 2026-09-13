@@ -39,7 +39,7 @@
         <quarkus.platform.version>3.39.1</quarkus.platform.version>
 
         <slf4j-jboss-logmanager.version>2.1.0.Final</slf4j-jboss-logmanager.version>
-        <lombok.version>1.18.46</lombok.version>
+        <lombok.version>1.18.48</lombok.version>
 
         <!-- spring boot samples: versions live here, BOMs are imported per-module so the -->
         <!-- Quarkus and Spring stacks never share a dependencyManagement import -->
