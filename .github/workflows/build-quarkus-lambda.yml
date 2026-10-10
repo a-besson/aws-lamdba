@@ -1,0 +1,33 @@
+name: build-quarkus-lambda
+
+on:
+  push:
+    paths:
+      - "quarkus-lambda/**"
+      - "pom.xml"
+      - "checkstyle.xml"
+      - ".tflint.hcl"
+      - ".github/workflows/_build-java.yml"
+      - ".github/workflows/build-quarkus-lambda.yml"
+  pull_request:
+    paths:
+      - "quarkus-lambda/**"
+      - "pom.xml"
+      - "checkstyle.xml"
+      - ".tflint.hcl"
+      - ".github/workflows/_build-java.yml"
+      - ".github/workflows/build-quarkus-lambda.yml"
+
+concurrency:
+  group: build-quarkus-lambda-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/_build-java.yml
+    with:
+      module: quarkus-lambda
+      native: true

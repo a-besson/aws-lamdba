@@ -1,0 +1,33 @@
+name: build-springboot-lambda
+
+on:
+  push:
+    paths:
+      - "springboot-lambda/**"
+      - "pom.xml"
+      - "checkstyle.xml"
+      - ".tflint.hcl"
+      - ".github/workflows/_build-java.yml"
+      - ".github/workflows/build-springboot-lambda.yml"
+  pull_request:
+    paths:
+      - "springboot-lambda/**"
+      - "pom.xml"
+      - "checkstyle.xml"
+      - ".tflint.hcl"
+      - ".github/workflows/_build-java.yml"
+      - ".github/workflows/build-springboot-lambda.yml"
+
+concurrency:
+  group: build-springboot-lambda-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/_build-java.yml
+    with:
+      module: springboot-lambda
+      native: false

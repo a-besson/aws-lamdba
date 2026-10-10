@@ -1,0 +1,44 @@
+# Repository-wide quality gate: pre-commit (hygiene, Terraform fmt/validate/tflint/docs, gitleaks, conventional commits).
+name: check-quality
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: check-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: 1.16.4
+      - uses: terraform-linters/setup-tflint@6ffdbaa3be476b3431f7275c26966ef32ff60337 # v6.3.2
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: Install tooling
+        run: |
+          python -m pip install pre-commit==4.6.2
+          # terraform-docs: download from the official release and verify its checksum
+          base=https://github.com/terraform-docs/terraform-docs/releases/download/v0.24.0
+          curl -fsSLO "$base/terraform-docs-v0.24.0-linux-amd64.tar.gz"
+          curl -fsSLO "$base/terraform-docs-v0.24.0.sha256sum"
+          sha256sum --check --ignore-missing terraform-docs-v0.24.0.sha256sum
+          tar -xzf terraform-docs-v0.24.0-linux-amd64.tar.gz terraform-docs
+          sudo install terraform-docs /usr/local/bin/
+      - run: pre-commit run --all-files --show-diff-on-failure
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
