@@ -12,6 +12,12 @@ variable "aws_profile" {
   description = "AWS profile"
 }
 
+variable "lambda_package_path" {
+  type        = string
+  default     = "../target/springboot-lambda.jar"
+  description = "Lambda package built by `task <sample>:package`, relative to this directory"
+}
+
 variable "lambda_bucket" {
   type        = string
   default     = "cloud-public-springboot-lambda-stack-bucket"
@@ -21,5 +27,5 @@ variable "lambda_bucket" {
 variable "lambda_function_name" {
   type        = string
   default     = "cloud-public-springboot-lambda"
-  description = "lambda bucket name"
+  description = "lambda function name, also prefixes the IAM and log group names"
 }

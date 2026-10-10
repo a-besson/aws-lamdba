@@ -1,0 +1,8 @@
+# Spring Framework 6.2.19 is the latest 6.2.x release: both fixes ship only in 7.0.9, i.e. the Spring Boot 4
+# major migration, which is out of scope (Renovate opens that upgrade). The samples only expose
+# @RestController String endpoints, with no view technology and no Server-Sent Events, which both CVEs require:
+#   CVE-2026-47884: XsltView behind a "/**" view-rendering mapping (RCE/SSRF)
+#   CVE-2026-47890: stream corruption of SSE responses rendering view fragments
+# Re-evaluate at expiry; drop the entries once Spring Boot 4 is adopted.
+CVE-2026-47884 exp:2026-11-09
+CVE-2026-47890 exp:2026-11-09

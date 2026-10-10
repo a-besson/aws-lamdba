@@ -76,7 +76,7 @@ resource "aws_api_gateway_method_settings" "all" {
 
   settings {
     logging_level      = "INFO"
-    data_trace_enabled = true
+    data_trace_enabled = false
     metrics_enabled    = true
   }
 }
@@ -91,7 +91,7 @@ resource "aws_lambda_permission" "apigw_lambda" {
 }
 
 resource "aws_iam_role" "api_gateway_account_role" {
-  name = "api-gateway-account-role"
+  name = "${var.lambda_function_name}-apigw-account"
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17",
     "Statement" : [
@@ -108,7 +108,7 @@ resource "aws_iam_role" "api_gateway_account_role" {
 }
 
 resource "aws_iam_role_policy" "api_gateway_cloudwatch_policy" {
-  name = "api-gateway-cloudwatch-policy"
+  name = "${var.lambda_function_name}-apigw-cloudwatch"
   role = aws_iam_role.api_gateway_account_role.id
   policy = jsonencode({
     "Version" : "2012-10-17",

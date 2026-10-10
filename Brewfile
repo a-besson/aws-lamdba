@@ -1,0 +1,15 @@
+# Workstation dependencies for this repository — installed by `task setup`.
+tap "hashicorp/tap"
+tap "terraform-linters/tap"
+
+brew "go-task"
+brew "maven"
+cask "temurin@21"
+brew "hashicorp/tap/terraform"
+cask "terraform-linters/tap/tflint"
+brew "terraform-docs"
+brew "pre-commit"
+brew "gitleaks"
+brew "trivy"
+brew "actionlint"
+brew "podman"

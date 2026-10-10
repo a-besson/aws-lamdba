@@ -4,6 +4,10 @@
 resource "aws_acm_certificate" "api" {
   domain_name       = var.domain_name
   validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_acm_certificate_validation" "api" {
@@ -62,5 +66,3 @@ resource "aws_api_gateway_base_path_mapping" "api" {
   domain_name = aws_api_gateway_domain_name.api.id
   stage_name  = aws_api_gateway_stage.stage.stage_name
 }
-
-

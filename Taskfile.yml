@@ -1,6 +1,9 @@
 # Root orchestration: one include per sample, repo-wide Maven shortcuts.
 version: "3"
 
+vars:
+  KICS_IMAGE: docker.io/checkmarx/kics:v2.1.20
+
 includes:
   quarkus:
     taskfile: quarkus-lambda/Taskfile.yml
@@ -36,3 +39,60 @@ tasks:
     desc: Package the JVM artifacts and run the integration tests of every sample (*IT, failsafe)
     cmds:
       - mvn -B -ntp verify -DskipUTs=true
+
+  setup:
+    desc: Install workstation dependencies (Brewfile), git hooks and TFLint plugins, then check the setup
+    cmds:
+      - brew bundle --file=Brewfile
+      - pre-commit install
+      - tflint --init --config=.tflint.hcl
+      - task: doctor
+
+  doctor:
+    desc: Check that the required tools and Java 21 are available (AWS session is optional)
+    silent: true
+    cmds:
+      - |
+        missing=0
+        for t in mvn java terraform tflint terraform-docs pre-commit gitleaks trivy actionlint podman; do
+          command -v "$t" >/dev/null || { echo "MISSING: $t (run: task setup)"; missing=1; }
+        done
+        if command -v java >/dev/null; then
+          major="$(java -version 2>&1 | sed -n 's/.*version "\([0-9]*\).*/\1/p' | head -n 1)"
+          if [ "$major" != "21" ]; then
+            if /usr/libexec/java_home -v 21 >/dev/null 2>&1; then
+              echo "WARNING: default Java is $major, CI uses 21 (export JAVA_HOME=\$(/usr/libexec/java_home -v 21))"
+            else
+              echo "MISSING: Java 21 (default is $major, run: task setup)"; missing=1
+            fi
+          fi
+        fi
+        if command -v aws >/dev/null; then
+          aws sts get-caller-identity >/dev/null 2>&1 || echo "WARNING: no AWS session, only needed for tf:plan, tf:apply and invoke"
+        else
+          echo "WARNING: aws cli not found, only needed to open a session for tf:plan, tf:apply and invoke"
+        fi
+        exit $missing
+
+  lint:
+    desc: Run all pre-commit hooks on every file
+    cmds:
+      - pre-commit run --all-files
+
+  kics:
+    desc: Scan the IaC with KICS (fails on HIGH/CRITICAL)
+    cmds:
+      - podman machine start >/dev/null 2>&1 || true
+      - podman run --rm -v "$PWD:/path:ro" {{.KICS_IMAGE}} scan -p /path --config /path/kics.config --no-progress
+
+  trivy:
+    desc: Scan IaC misconfigurations, dependency vulnerabilities and secrets with Trivy (fails on HIGH/CRITICAL)
+    cmds:
+      - trivy config --config trivy.yaml .
+      - trivy fs --config trivy.yaml --scanners vuln,secret .
+
+  scan:
+    desc: Run KICS and Trivy
+    cmds:
+      - task: kics
+      - task: trivy

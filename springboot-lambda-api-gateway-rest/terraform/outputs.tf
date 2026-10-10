@@ -7,9 +7,9 @@ output "aws_lambda_function" {
 output "api_gtw_deployment_invoke_url" {
   description = "Deployment invoke url"
   value       = <<EOF
-        curl -X GET ${aws_api_gateway_deployment.api_deploy.invoke_url}/dev/demo
-        curl -X POST ${aws_api_gateway_deployment.api_deploy.invoke_url}/dev/demo
-        curl -X PUT ${aws_api_gateway_deployment.api_deploy.invoke_url}/dev/demo
+        curl -X GET ${aws_api_gateway_stage.stage.invoke_url}/demo
+        curl -X POST ${aws_api_gateway_stage.stage.invoke_url}/demo
+        curl -X PUT ${aws_api_gateway_stage.stage.invoke_url}/demo
     EOF
 }
 

@@ -5,11 +5,33 @@ resource "aws_s3_bucket" "lambda_bucket" {
   bucket = var.lambda_bucket
 }
 
+resource "aws_s3_bucket_public_access_block" "lambda_bucket" {
+  bucket = aws_s3_bucket.lambda_bucket.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# Accepted: SSE-S3 (AES256) instead of a customer managed KMS key. This bucket only holds the public sample
+# package and a CMK would add a monthly cost per key for no gain on a demo.
+#trivy:ignore:AVD-AWS-0132
+resource "aws_s3_bucket_server_side_encryption_configuration" "lambda_bucket" {
+  bucket = aws_s3_bucket.lambda_bucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
 resource "aws_s3_object" "deploy_lambda_to_s3" {
   bucket = var.lambda_bucket
   key    = "lambda"
-  source = "../target/function.zip"
-  etag   = filemd5("../target/function.zip")
+  source = var.lambda_package_path
+  etag   = filemd5(var.lambda_package_path)
 
   depends_on = [
     aws_s3_bucket.lambda_bucket
@@ -65,7 +87,7 @@ data "aws_iam_policy_document" "lambda_policy_assume_role" {
 }
 
 resource "aws_iam_role" "lambda_execution_role" {
-  name               = "lambda_execution_role"
+  name               = "${var.lambda_function_name}-execution"
   assume_role_policy = data.aws_iam_policy_document.lambda_policy_assume_role.json
 }
 
