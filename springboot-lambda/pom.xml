@@ -72,6 +72,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
             <!--
                 Spring Cloud Function's AWS adapter needs a flat, single-jar classpath (no nested
                 jar-in-jar Boot loader) for a fast Lambda cold start, so we shade instead of using

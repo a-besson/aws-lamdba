@@ -5,5 +5,5 @@ import io.quarkus.test.junit.TestProfile;
 
 @QuarkusIntegrationTest
 @TestProfile(StreamLambdaProfile.class)
-public class StreamLambdaIT extends DemoLambdaTest {
+public class StreamLambdaIT extends StreamLambdaTest {
 }

@@ -7,10 +7,6 @@ import com.amazonaws.serverless.proxy.model.AwsProxyRequestContext;
 import com.amazonaws.serverless.proxy.model.AwsProxyResponse;
 import com.amazonaws.serverless.proxy.model.Headers;
 import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
-import com.amazonaws.services.lambda.runtime.ClientContext;
-import com.amazonaws.services.lambda.runtime.CognitoIdentity;
-import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * container handler {@link StreamLambdaHandler} initializes - proving the API Gateway proxy
  * integration wiring works without deploying anything.
  */
-class StreamLambdaHandlerTest {
+class StreamLambdaHandlerIT {
 
     private static SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
 
@@ -77,70 +73,5 @@ class StreamLambdaHandlerTest {
         request.setRequestContext(requestContext);
 
         return request;
-    }
-
-    private static final class NoOpContext implements Context {
-        @Override
-        public String getAwsRequestId() {
-            return "test-request-id";
-        }
-
-        @Override
-        public String getLogGroupName() {
-            return "test-log-group";
-        }
-
-        @Override
-        public String getLogStreamName() {
-            return "test-log-stream";
-        }
-
-        @Override
-        public String getFunctionName() {
-            return "springboot-lambda-api-gateway-rest";
-        }
-
-        @Override
-        public String getFunctionVersion() {
-            return "$LATEST";
-        }
-
-        @Override
-        public String getInvokedFunctionArn() {
-            return "arn:aws:lambda:eu-west-3:000000000000:function:springboot-lambda-api-gateway-rest";
-        }
-
-        @Override
-        public CognitoIdentity getIdentity() {
-            return null;
-        }
-
-        @Override
-        public ClientContext getClientContext() {
-            return null;
-        }
-
-        @Override
-        public int getRemainingTimeInMillis() {
-            return 30000;
-        }
-
-        @Override
-        public int getMemoryLimitInMB() {
-            return 512;
-        }
-
-        @Override
-        public LambdaLogger getLogger() {
-            return new LambdaLogger() {
-                @Override
-                public void log(String message) {
-                }
-
-                @Override
-                public void log(byte[] message) {
-                }
-            };
-        }
     }
 }

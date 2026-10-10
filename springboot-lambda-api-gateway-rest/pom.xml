@@ -58,6 +58,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
             <!--
                 Declared (no execution bound) purely so `mvn spring-boot:run` works for local
                 testing - the deployable artifact is produced by maven-shade-plugin below, not
