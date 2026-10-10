@@ -1,104 +1,76 @@
 # Spring Boot Lambda
 
-Simple Spring Cloud Function lambda, functional equivalent of [`quarkus-lambda`](../quarkus-lambda/README.md),
-using `spring-cloud-function-adapter-aws`.
+Simple Spring Cloud Function Lambda, functional equivalent of [`quarkus-lambda`](../quarkus-lambda/README.md),
+using `spring-cloud-function-adapter-aws`, deployed as a shaded jar on the `java21` runtime behind a
+Lambda Function URL.
 
 > :warning: This sample could use some services/options not eligible to free account
 
 ## Prerequisites
 
-* java 21
-* aws account
-* aws cli & sam cli
+* Java 21 and Maven (`task setup` at the repository root installs the tooling)
+* an AWS account and session, only to deploy
 
 ## Getting started
 
-### Run locally
-
-#### Testing the functions
+All commands run from the repository root through [Task](https://taskfile.dev).
 
 ```shell
-mvn test
+task spring:test       # unit tests (*Test, surefire): functions through the FunctionCatalog
+task spring:it         # integration tests (*IT, failsafe): FunctionInvoker fed with src/test/resources/payload.json
+task spring:package    # shaded jar target/springboot-lambda.jar
 ```
 
-This runs the JUnit tests that invoke `demo` and `stream` through the Spring Cloud Function
-`FunctionCatalog`, and `FunctionInvoker` end to end - the same handler entry point used on AWS
-Lambda and by `sam local invoke` below.
-
-#### Package
-
-```shell
-# build the shaded jar deployed to AWS Lambda (java21 runtime)
-mvn clean install -DskipTests
-```
-
-#### Testing locally with the SAM
-
-```shell
-sam local invoke --template cloudformation/sam.jvm.yaml --event ./src/test/resources/payload.json --region eu-west-3
-```
-
-#### Deploy to AWS with SAM & Cloudformation
-
-```shell
-# create bucket for lambda
-aws s3 mb s3://${LAMDBA_BUCKET};
-
-# build app
-mvn clean install -DskipTests
-
-# package app with sam & upload lambda
-sam package --template-file cloudformation/sam.jvm.yaml \
-    --output-template-file target/packaged.yaml \
-    --s3-bucket ${LAMDBA_BUCKET};
-
-# Deploy lambda stack
-sam deploy --template-file target/packaged.yaml \
-  --stack-name ${LAMDBA_STACK} \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-
-# Test lambda
-curl -X POST 'https://ID.lambda-url.eu-west-3.on.aws/' \
-  -H 'content-type: application/json' \
-  -d '{ "body": "hello lambda" }'
-
-{"statusCode":200,"body":"hello lambda"}
-```
-
-#### Deploy to AWS with SAM & Terraform
-
-```bash
-cd terraform/
-
-terraform init
-terraform plan
-terraform apply -auto-approve
-...
-Apply complete! Resources: 9 added, 0 changed, 0 destroyed.
-Outputs:
-aws_lambda_function = "arn:aws:lambda:ZONE:ID:function:cloud-public-springboot-lambda"
-aws_lambda_function_url = "https://ID.lambda-url.eu-west-3.on.aws/"
-
-curl -X POST 'https://ID.lambda-url.eu-west-3.on.aws/' \
-    -H 'content-type: application/json' \
-    -d '{ "body": "hello lambda" }'
-
-{"statusCode":200,"body":"hello lambda"}
-
-terraform destroy -auto-approve
-```
-
-#### Performance test
-
-```bash
-npm install -g artillery@latest
-artillery run src/test/resources/lambda-load-test.yml --target https://example.lambda-url.eu-west-3.on.aws/
-```
+This module is a Spring Cloud Function without web server, so there is no `dev` task: its local
+execution goes through `task spring:it`, which drives the real `FunctionInvoker` entry point.
 
 ### Selecting a different function
 
 Like the Quarkus sample's `quarkus.lambda.handler`, this module selects the active function via
 `spring.cloud.function.definition` (`src/main/resources/application.properties`, default `demo`),
-overridden in the SAM/Terraform templates through the `SPRING_CLOUD_FUNCTION_DEFINITION`
-environment variable. Set it to `stream` to uppercase the raw request payload, or `error` to
-always throw `RuntimeException("Should be unused")`.
+overridden in the Terraform stack through the `SPRING_CLOUD_FUNCTION_DEFINITION` environment variable.
+Set it to `stream` to uppercase the raw request payload, or `error` to always throw
+`RuntimeException("Should be unused")`.
+
+## Deploy to AWS with Terraform
+
+The AWS session is read from the `aws_profile` / `aws_region` Terraform variables
+(see `terraform/variables.tf`; pass overrides after `--`).
+
+```bash
+task spring:package          # build the shaded jar (`target/springboot-lambda.jar`)
+task spring:tf:plan          # review what will be created
+task spring:tf:apply         # WARNING: billable resources
+task spring:invoke           # call the deployed sample
+task spring:tf:destroy       # clean up
+```
+
+`tf:apply` builds the artifact first (`package` dependency). Example: `task spring:tf:plan -- -var aws_profile=my-profile`.
+
+Example call, as run by `task spring:invoke`:
+
+```bash
+curl -X POST '<lambda-function-url>' \
+    -H 'content-type: application/json' \
+    -d '{ "body": "hello lambda" }'
+
+{"statusCode":200,"body":"hello lambda"}
+```
+
+## Performance test
+
+```bash
+npm install -g artillery@latest
+artillery run src/test/resources/lambda-load-test.yml --target https://<function-id>.lambda-url.<region>.on.aws/
+```
+
+## Structure
+
+```text
+springboot-lambda/
+├── Taskfile.yml                 # build, test, it, package, tf:*, invoke
+├── src/main/java/.../simpledemo # DemoFunction, StreamFunction, ErrorFunction, ProcessingService, LambdaTracer aspect
+├── src/test/java/.../simpledemo # *Test (FunctionCatalog) and FunctionInvokerHandlerIT
+├── src/test/resources           # payload.json, lambda-load-test.yml
+└── terraform/                   # Lambda, Function URL, IAM, logs
+```

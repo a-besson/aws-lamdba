@@ -1,0 +1,38 @@
+# Root orchestration: one include per sample, repo-wide Maven shortcuts.
+version: "3"
+
+includes:
+  quarkus:
+    taskfile: quarkus-lambda/Taskfile.yml
+    dir: quarkus-lambda
+  quarkus-rest:
+    taskfile: quarkus-lambda-api-gateway-rest/Taskfile.yml
+    dir: quarkus-lambda-api-gateway-rest
+  spring:
+    taskfile: springboot-lambda/Taskfile.yml
+    dir: springboot-lambda
+  spring-rest:
+    taskfile: springboot-lambda-api-gateway-rest/Taskfile.yml
+    dir: springboot-lambda-api-gateway-rest
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  build:
+    desc: Run Checkstyle and compile main and test sources of every sample (JVM)
+    cmds:
+      - mvn -B -ntp compile test-compile
+
+  test:
+    desc: Run the unit tests of every sample (*Test, surefire)
+    cmds:
+      - mvn -B -ntp test
+
+  it:
+    desc: Package the JVM artifacts and run the integration tests of every sample (*IT, failsafe)
+    cmds:
+      - mvn -B -ntp verify -DskipUTs=true

@@ -12,3 +12,8 @@ output "aws_lambda_function_url" {
     EOF
     description = "URL de la lambda"
 }
+
+output "lambda_function_url" {
+  description = "Function URL of the Lambda (read by `task invoke`)"
+  value       = aws_lambda_function_url.springboot_lambda_url.function_url
+}

@@ -1,0 +1,80 @@
+# Quarkus Lambda behind API Gateway REST (provided.al2023 native zip)
+version: "3"
+
+vars:
+  MODULE: quarkus-lambda-api-gateway-rest
+  # always go through the root reactor: no prior `mvn install` of the parent is needed
+  MVN: mvn -B -ntp -f {{.ROOT_DIR}}/pom.xml -pl {{.MODULE}} -am
+  TF_DIR: "{{.TASKFILE_DIR}}/terraform"
+
+tasks:
+  build:
+    desc: Run Checkstyle and compile main and test sources (JVM)
+    cmds:
+      - "{{.MVN}} compile test-compile"
+
+  test:
+    desc: Run the unit tests (*Test, surefire)
+    cmds:
+      - "{{.MVN}} test"
+
+  it:
+    desc: Package the JVM artifact and run the integration tests only (*IT, failsafe)
+    cmds:
+      - "{{.MVN}} verify -DskipUTs=true"
+
+  # No `dev` task: quarkus:dev fails on quarkus-amazon-lambda-rest 3.39.1 ("Key already registered
+  # quarkus.http.local-base-uri" from AbstractLambdaPollLoop). Local execution goes through the
+  # *Test / *IT classes, which exercise the same REST resource.
+
+  package:
+    desc: Build the native Lambda zip (target/function.zip) in a Docker/Podman builder container
+    cmds:
+      - "{{.MVN}} package -DskipTests -Dnative -Dquarkus.native.container-build=true"
+
+  package-jvm:
+    desc: Build the JVM Lambda package without tests (diagnostic, not what Terraform deploys)
+    cmds:
+      - "{{.MVN}} package -DskipTests"
+
+  tf:init:
+    desc: Initialise Terraform (local state)
+    dir: "{{.TF_DIR}}"
+    cmds:
+      - terraform init -input=false
+
+  tf:plan:
+    desc: Plan the AWS stack (needs target/function.zip and an AWS session)
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    preconditions:
+      - sh: test -f ../target/function.zip
+        msg: "target/function.zip is missing: run `task quarkus-rest:package` first"
+    cmds:
+      - terraform plan -input=false {{.CLI_ARGS}}
+
+  tf:apply:
+    desc: "WARNING: provisions billable AWS resources (Lambda, API Gateway, IAM, CloudWatch, S3)"
+    dir: "{{.TF_DIR}}"
+    deps: [package, tf:init]
+    cmds:
+      - terraform apply -input=false {{.CLI_ARGS}}
+
+  tf:destroy:
+    desc: "WARNING: destroys the AWS stack of this sample"
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    prompt: This destroys the AWS resources of quarkus-lambda-api-gateway-rest. Continue?
+    cmds:
+      - terraform destroy -input=false -auto-approve {{.CLI_ARGS}}
+
+  invoke:
+    desc: "WARNING: calls the deployed API (API Gateway REST, billed per request)"
+    dir: "{{.TF_DIR}}"
+    cmds:
+      - |
+        url="$(terraform output -raw api_invoke_url)"
+        for method in GET POST PUT; do
+          curl -sS -X "$method" "$url" -H 'content-type: application/json' -d '{}'
+          echo
+        done

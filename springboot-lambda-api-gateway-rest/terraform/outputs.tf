@@ -20,3 +20,8 @@ output "custom_domain_api" {
         curl -X PUT https://${aws_api_gateway_base_path_mapping.api.domain_name}/demo
     EOF
 }
+
+output "api_invoke_url" {
+  description = "API Gateway URL of the /demo resource (read by `task invoke`)"
+  value       = "${aws_api_gateway_stage.stage.invoke_url}/demo"
+}

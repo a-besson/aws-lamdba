@@ -1,0 +1,73 @@
+# Spring Boot Lambda (Function URL, java21 shaded jar)
+version: "3"
+
+vars:
+  MODULE: springboot-lambda
+  # always go through the root reactor: no prior `mvn install` of the parent is needed
+  MVN: mvn -B -ntp -f {{.ROOT_DIR}}/pom.xml -pl {{.MODULE}} -am
+  TF_DIR: "{{.TASKFILE_DIR}}/terraform"
+
+tasks:
+  build:
+    desc: Run Checkstyle and compile main and test sources (JVM)
+    cmds:
+      - "{{.MVN}} compile test-compile"
+
+  test:
+    desc: Run the unit tests (*Test, surefire)
+    cmds:
+      - "{{.MVN}} test"
+
+  it:
+    desc: Package the JVM artifact and run the integration tests only (*IT, failsafe)
+    cmds:
+      - "{{.MVN}} verify -DskipUTs=true"
+
+  # No `dev` task: this module is a Spring Cloud Function without web server. Its local execution
+  # goes through the integration tests (`task spring:it`), which drive FunctionInvoker with payload.json.
+
+  package:
+    desc: Build the shaded jar deployed to AWS Lambda (target/springboot-lambda.jar)
+    cmds:
+      - "{{.MVN}} package -DskipTests"
+
+  tf:init:
+    desc: Initialise Terraform (local state)
+    dir: "{{.TF_DIR}}"
+    cmds:
+      - terraform init -input=false
+
+  tf:plan:
+    desc: Plan the AWS stack (needs target/springboot-lambda.jar and an AWS session)
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    preconditions:
+      - sh: test -f ../target/springboot-lambda.jar
+        msg: "target/springboot-lambda.jar is missing: run `task spring:package` first"
+    cmds:
+      - terraform plan -input=false {{.CLI_ARGS}}
+
+  tf:apply:
+    desc: "WARNING: provisions billable AWS resources (Lambda, Function URL, IAM, CloudWatch, S3)"
+    dir: "{{.TF_DIR}}"
+    deps: [package, tf:init]
+    cmds:
+      - terraform apply -input=false {{.CLI_ARGS}}
+
+  tf:destroy:
+    desc: "WARNING: destroys the AWS stack of this sample"
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    prompt: This destroys the AWS resources of springboot-lambda. Continue?
+    cmds:
+      - terraform destroy -input=false -auto-approve {{.CLI_ARGS}}
+
+  invoke:
+    desc: "WARNING: calls the deployed Lambda (Function URL, billed per invocation)"
+    dir: "{{.TF_DIR}}"
+    cmds:
+      - |
+        curl -sS -X POST "$(terraform output -raw lambda_function_url)" \
+          -H 'content-type: application/json' \
+          -d '{"body": "hello lambda"}'
+        echo

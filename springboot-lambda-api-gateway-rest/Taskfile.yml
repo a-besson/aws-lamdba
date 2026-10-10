@@ -1,0 +1,78 @@
+# Spring Boot Lambda behind API Gateway REST (java21 shaded jar)
+version: "3"
+
+vars:
+  MODULE: springboot-lambda-api-gateway-rest
+  # always go through the root reactor: no prior `mvn install` of the parent is needed
+  MVN: mvn -B -ntp -f {{.ROOT_DIR}}/pom.xml -pl {{.MODULE}} -am
+  TF_DIR: "{{.TASKFILE_DIR}}/terraform"
+
+tasks:
+  build:
+    desc: Run Checkstyle and compile main and test sources (JVM)
+    cmds:
+      - "{{.MVN}} compile test-compile"
+
+  test:
+    desc: Run the unit tests (*Test, surefire)
+    cmds:
+      - "{{.MVN}} test"
+
+  it:
+    desc: Package the JVM artifact and run the integration tests only (*IT, failsafe)
+    cmds:
+      - "{{.MVN}} verify -DskipUTs=true"
+
+  dev:
+    desc: Run the app as a local web server (spring-boot:run on http://localhost:8080)
+    interactive: true
+    cmds:
+      # no -am: a plugin goal would also run on the parent pom
+      - mvn -B -ntp -f {{.ROOT_DIR}}/pom.xml -pl {{.MODULE}} spring-boot:run
+
+  package:
+    desc: Build the shaded jar deployed to AWS Lambda (target/springboot-lambda-api-gateway-rest.jar)
+    cmds:
+      - "{{.MVN}} package -DskipTests"
+
+  tf:init:
+    desc: Initialise Terraform (local state)
+    dir: "{{.TF_DIR}}"
+    cmds:
+      - terraform init -input=false
+
+  tf:plan:
+    desc: Plan the AWS stack (needs target/springboot-lambda-api-gateway-rest.jar and an AWS session)
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    preconditions:
+      - sh: test -f ../target/springboot-lambda-api-gateway-rest.jar
+        msg: "target/springboot-lambda-api-gateway-rest.jar is missing: run `task spring-rest:package` first"
+    cmds:
+      - terraform plan -input=false {{.CLI_ARGS}}
+
+  tf:apply:
+    desc: "WARNING: provisions billable AWS resources (Lambda, API Gateway, IAM, CloudWatch, S3)"
+    dir: "{{.TF_DIR}}"
+    deps: [package, tf:init]
+    cmds:
+      - terraform apply -input=false {{.CLI_ARGS}}
+
+  tf:destroy:
+    desc: "WARNING: destroys the AWS stack of this sample"
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    prompt: This destroys the AWS resources of springboot-lambda-api-gateway-rest. Continue?
+    cmds:
+      - terraform destroy -input=false -auto-approve {{.CLI_ARGS}}
+
+  invoke:
+    desc: "WARNING: calls the deployed API (API Gateway REST, billed per request)"
+    dir: "{{.TF_DIR}}"
+    cmds:
+      - |
+        url="$(terraform output -raw api_invoke_url)"
+        for method in GET POST PUT; do
+          curl -sS -X "$method" "$url" -H 'content-type: application/json' -d '{}'
+          echo
+        done
