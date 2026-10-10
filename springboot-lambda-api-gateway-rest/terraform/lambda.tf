@@ -23,7 +23,7 @@ resource "aws_lambda_function" "springboot_lambda" {
     function_name = var.lambda_function_name
     s3_bucket     = var.lambda_bucket
     s3_key        = "lambda"
-    handler       = "com.springboot.lambda.rest.StreamLambdaHandler::handleRequest"
+    handler       = "com.aws.lambda.springboot.rest.StreamLambdaHandler::handleRequest"
     runtime       = "java21"
     role          = aws_iam_role.lambda_execution_role.arn
     memory_size   = 512

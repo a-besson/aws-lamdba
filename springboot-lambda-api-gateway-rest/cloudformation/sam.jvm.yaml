@@ -68,7 +68,7 @@ Resources:
     SpringBootLambdaRestDemo:
         Type: AWS::Serverless::Function
         Properties:
-            Handler: com.springboot.lambda.rest.StreamLambdaHandler::handleRequest
+            Handler: com.aws.lambda.springboot.rest.StreamLambdaHandler::handleRequest
             Runtime: java21
             CodeUri: ../target/springboot-lambda-api-gateway-rest.jar
             MemorySize: !Ref LambdaMemorySize
