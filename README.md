@@ -26,7 +26,8 @@ task doctor   # check the tools and Java 21; an AWS session is only needed to de
 ## Commands
 
 Everything goes through [Task](https://taskfile.dev) (`task --list`). Each sample is a namespace:
-`quarkus`, `quarkus-rest`, `spring`, `spring-rest`.
+`quarkus`, `quarkus-rest`, `spring`, `spring-rest`. From inside a sample directory the same tasks run without the
+namespace (`cd quarkus-lambda && task build`).
 
 | Command | Effect |
 |---|---|

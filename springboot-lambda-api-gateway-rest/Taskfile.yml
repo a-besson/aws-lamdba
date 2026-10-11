@@ -3,8 +3,10 @@ version: "3"
 
 vars:
   MODULE: springboot-lambda-api-gateway-rest
+  # the repo root, computed from this file so that `task` also works when run from the module directory
+  REPO_DIR: "{{.TASKFILE_DIR}}/.."
   # always go through the root reactor: no prior `mvn install` of the parent is needed
-  MVN: mvn -B -ntp -f {{.ROOT_DIR}}/pom.xml -pl {{.MODULE}} -am
+  MVN: mvn -B -ntp -f {{.REPO_DIR}}/pom.xml -pl {{.MODULE}} -am
   TF_DIR: "{{.TASKFILE_DIR}}/terraform"
 
 tasks:
@@ -22,7 +24,7 @@ tasks:
     desc: Package the JVM artifact and run the integration tests only (*IT, failsafe, Floci in a container)
     cmds:
       - |
-        {{.CONTAINER_ENV}}
+        . {{.REPO_DIR}}/scripts/container-env.sh
         {{.MVN}} verify -DskipUTs=true
 
   dev:
@@ -30,7 +32,7 @@ tasks:
     interactive: true
     cmds:
       # no -am: a plugin goal would also run on the parent pom
-      - mvn -B -ntp -f {{.ROOT_DIR}}/pom.xml -pl {{.MODULE}} spring-boot:run
+      - mvn -B -ntp -f {{.REPO_DIR}}/pom.xml -pl {{.MODULE}} spring-boot:run
 
   package:
     desc: Build the shaded jar deployed to AWS Lambda (target/springboot-lambda-api-gateway-rest.jar)
@@ -41,27 +43,25 @@ tasks:
     desc: Initialise Terraform on the shared S3 state backend (needs backend.hcl at the repo root)
     dir: "{{.TF_DIR}}"
     preconditions:
-      - sh: test -f {{.ROOT_DIR}}/backend.hcl
+      - sh: test -f {{.REPO_DIR}}/backend.hcl
         msg: "backend.hcl is missing: run `task state:tf:apply`, then copy backend.hcl.example to backend.hcl"
     cmds:
-      - terraform init -input=false -backend-config={{.ROOT_DIR}}/backend.hcl -backend-config="key={{.MODULE}}/terraform.tfstate"
+      - terraform init -input=false -backend-config={{.REPO_DIR}}/backend.hcl -backend-config="key={{.MODULE}}/terraform.tfstate"
 
   tf:migrate-state:
     desc: Copy an existing local terraform.tfstate of this stack to the S3 backend (one-off, asks for confirmation)
     dir: "{{.TF_DIR}}"
     interactive: true
     preconditions:
-      - sh: test -f {{.ROOT_DIR}}/backend.hcl
+      - sh: test -f {{.REPO_DIR}}/backend.hcl
         msg: "backend.hcl is missing: run `task state:tf:apply`, then copy backend.hcl.example to backend.hcl"
     cmds:
-      - terraform init -input=false -migrate-state -backend-config={{.ROOT_DIR}}/backend.hcl -backend-config="key={{.MODULE}}/terraform.tfstate"
+      - terraform init -input=false -migrate-state -backend-config={{.REPO_DIR}}/backend.hcl -backend-config="key={{.MODULE}}/terraform.tfstate"
 
   tf:test:
     desc: Apply the stack on a throwaway Floci container with `terraform test` (no AWS account, no package needed)
     cmds:
-      - task: :tf-floci-test
-        vars:
-          TF_DIR: "{{.TF_DIR}}"
+      - "{{.REPO_DIR}}/scripts/floci-terraform-test.sh {{.TF_DIR}}"
 
   tf:plan:
     desc: Plan the AWS stack (needs target/springboot-lambda-api-gateway-rest.jar and an AWS session)

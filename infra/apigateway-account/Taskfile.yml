@@ -3,6 +3,7 @@ version: "3"
 
 vars:
   MODULE: apigateway-account
+  REPO_DIR: "{{.TASKFILE_DIR}}/../.."
   TF_DIR: "{{.TASKFILE_DIR}}/terraform"
 
 tasks:
@@ -10,10 +11,10 @@ tasks:
     desc: Initialise Terraform on the shared S3 state backend (needs backend.hcl at the repo root)
     dir: "{{.TF_DIR}}"
     preconditions:
-      - sh: test -f {{.ROOT_DIR}}/backend.hcl
+      - sh: test -f {{.REPO_DIR}}/backend.hcl
         msg: "backend.hcl is missing: run `task state:tf:apply`, then copy backend.hcl.example to backend.hcl"
     cmds:
-      - terraform init -input=false -backend-config={{.ROOT_DIR}}/backend.hcl -backend-config="key={{.MODULE}}/terraform.tfstate"
+      - terraform init -input=false -backend-config={{.REPO_DIR}}/backend.hcl -backend-config="key={{.MODULE}}/terraform.tfstate"
 
   tf:plan:
     desc: Plan the account settings (needs an AWS session)

@@ -5,6 +5,7 @@
 - **terraform**: `terraform test` of every stack on Floci (`task <ns>:tf:test`, `terraform/tests/floci.tftest.hcl`, placeholder zip, hosted zone fixture and ACM validation override for the REST stacks), new `lambda_insights_enabled` variable (default true) to skip the AWS-owned layer on the emulator
 - **ci**: `terraform-test` job in `_build-java.yml` (Floci container, fake credentials), required by `package`
 - **ci**: workflows run on `pull_request` only (no `push` trigger); `check-quality` keeps its weekly cron
+- **tooling**: `task <target>` run from a module directory failed (`Could not find the selected project in the reactor`: Task takes the module Taskfile as root, so `ROOT_DIR` was the module); module Taskfiles now use `REPO_DIR`, and the container engine setup and the Floci `terraform test` run moved to `scripts/` so they work from both places
 - **layout**: `apigateway-account/` and `state-bucket/` moved under `infra/` (state keys unchanged); unused IntelliJ `.run/` debug configuration removed
 - **tooling**: `tf:*` preconditions now resolve `target/` from the module directory (they looked in `terraform/..` relative to the wrong directory)
 

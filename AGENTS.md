@@ -32,7 +32,7 @@ change: the Terraform stacks read `target/` paths derived from them. Plugin vers
 
 ## Commands
 
-Task is the only entry point: `task --list`. Maven always goes through the root reactor
+Task is the only entry point: `task --list`, from the root (`task quarkus:build`) or from a module directory (`task build`); the module Taskfiles locate the root through `REPO_DIR`, never `ROOT_DIR`. Shared shell logic lives in `scripts/` (`container-env.sh`, `floci-terraform-test.sh`). Maven always goes through the root reactor
 (`mvn -f <root>/pom.xml -pl <module> -am ...`).
 
 ```bash
