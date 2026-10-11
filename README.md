@@ -98,7 +98,7 @@ Floci through the container engine socket. Nothing is sent to AWS and no credent
 ├── build-springboot-lambda.yml
 ├── build-springboot-lambda-api-gateway-rest.yml
 ├── check-cyber.yml                               # KICS + Trivy config/fs, SARIF upload
-└── check-quality.yml                             # pre-commit run --all-files + CodeQL (Java, push, PR and weekly)
+└── check-quality.yml                             # pre-commit run --all-files + CodeQL (Java, PR and weekly)
 ```
 
 CI holds no cloud credential and never runs `plan`, `apply` or a deployment.

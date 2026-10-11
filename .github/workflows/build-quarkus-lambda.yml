@@ -1,14 +1,6 @@
 name: build-quarkus-lambda
 
 on:
-  push:
-    paths:
-      - "quarkus-lambda/**"
-      - "pom.xml"
-      - "checkstyle.xml"
-      - ".tflint.hcl"
-      - ".github/workflows/_build-java.yml"
-      - ".github/workflows/build-quarkus-lambda.yml"
   pull_request:
     paths:
       - "quarkus-lambda/**"

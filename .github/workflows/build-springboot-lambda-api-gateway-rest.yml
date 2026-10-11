@@ -1,14 +1,6 @@
 name: build-springboot-lambda-api-gateway-rest
 
 on:
-  push:
-    paths:
-      - "springboot-lambda-api-gateway-rest/**"
-      - "pom.xml"
-      - "checkstyle.xml"
-      - ".tflint.hcl"
-      - ".github/workflows/_build-java.yml"
-      - ".github/workflows/build-springboot-lambda-api-gateway-rest.yml"
   pull_request:
     paths:
       - "springboot-lambda-api-gateway-rest/**"

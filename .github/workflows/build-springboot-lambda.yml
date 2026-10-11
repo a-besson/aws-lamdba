@@ -1,14 +1,6 @@
 name: build-springboot-lambda
 
 on:
-  push:
-    paths:
-      - "springboot-lambda/**"
-      - "pom.xml"
-      - "checkstyle.xml"
-      - ".tflint.hcl"
-      - ".github/workflows/_build-java.yml"
-      - ".github/workflows/build-springboot-lambda.yml"
   pull_request:
     paths:
       - "springboot-lambda/**"
