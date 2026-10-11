@@ -58,7 +58,7 @@
         <spring-boot.version>3.5.16</spring-boot.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
         <!-- Same CVEs as jackson-bom.version above: spring-boot-dependencies 3.5.16 pins Jackson 2.21.4 -->
-        <jackson-bom-spring.version>2.21.7</jackson-bom-spring.version>
+        <jackson-bom-spring.version>2.22.3</jackson-bom-spring.version>
         <!-- CVE-2026-65182, CVE-2026-65905, CVE-2026-68525: spring-boot-dependencies 3.5.16 pins Tomcat 10.1.55 -->
         <tomcat-embed.version>10.1.60</tomcat-embed.version>
         <aws-serverless-java-container.version>2.1.5</aws-serverless-java-container.version>
