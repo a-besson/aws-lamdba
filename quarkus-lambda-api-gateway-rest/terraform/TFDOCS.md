@@ -7,6 +7,9 @@
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.16 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | 6.68.0 |
+| <a name="requirement_external"></a> [external](#requirement\_external) | 2.4.2 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | 2.9.1 |
+| <a name="requirement_null"></a> [null](#requirement\_null) | 3.3.2 |
 
 ## Providers
 
@@ -16,7 +19,10 @@
 
 ## Modules
 
-No modules.
+| Name | Source | Version |
+| ---- | ------ | ------- |
+| <a name="module_lambda"></a> [lambda](#module\_lambda) | terraform-aws-modules/lambda/aws | 8.12.0 |
+| <a name="module_lambda_bucket"></a> [lambda\_bucket](#module\_lambda\_bucket) | terraform-aws-modules/s3-bucket/aws | 5.16.2 |
 
 ## Resources
 
@@ -24,7 +30,6 @@ No modules.
 | ---- | ---- |
 | [aws_acm_certificate.api](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/acm_certificate) | resource |
 | [aws_acm_certificate_validation.api](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/acm_certificate_validation) | resource |
-| [aws_api_gateway_account.api_gateway_account](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_account) | resource |
 | [aws_api_gateway_base_path_mapping.api](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_base_path_mapping) | resource |
 | [aws_api_gateway_deployment.api_deploy](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_deployment) | resource |
 | [aws_api_gateway_domain_name.api](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_domain_name) | resource |
@@ -35,20 +40,10 @@ No modules.
 | [aws_api_gateway_rest_api.my_api](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_rest_api) | resource |
 | [aws_api_gateway_stage.stage](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_stage) | resource |
 | [aws_cloudwatch_log_group.main_api_gw](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/cloudwatch_log_group) | resource |
-| [aws_iam_role.api_gateway_account_role](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/iam_role) | resource |
-| [aws_iam_role.lambda_execution_role](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/iam_role) | resource |
-| [aws_iam_role_policy.api_gateway_cloudwatch_policy](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/iam_role_policy) | resource |
-| [aws_iam_role_policy_attachment.insights_policy](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/iam_role_policy_attachment) | resource |
-| [aws_iam_role_policy_attachment.this_xray_tracing](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/iam_role_policy_attachment) | resource |
-| [aws_lambda_function.quarkus_lambda](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/lambda_function) | resource |
 | [aws_lambda_permission.apigw_lambda](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/lambda_permission) | resource |
 | [aws_route53_record.api](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/route53_record) | resource |
 | [aws_route53_record.api_validation](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/route53_record) | resource |
-| [aws_s3_bucket.lambda_bucket](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/s3_bucket) | resource |
-| [aws_s3_bucket_public_access_block.lambda_bucket](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/s3_bucket_public_access_block) | resource |
-| [aws_s3_bucket_server_side_encryption_configuration.lambda_bucket](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
 | [aws_s3_object.deploy_lambda_to_s3](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/s3_object) | resource |
-| [aws_iam_policy_document.lambda_policy_assume_role](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/data-sources/iam_policy_document) | data source |
 | [aws_route53_zone.public](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/data-sources/route53_zone) | data source |
 
 ## Inputs
@@ -60,6 +55,7 @@ No modules.
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | domain name | `string` | `"aws-lab-demo.com"` | no |
 | <a name="input_lambda_bucket"></a> [lambda\_bucket](#input\_lambda\_bucket) | lambda bucket name | `string` | `"cloud-public-quarkus-lambda-api-gateway-rest-bucket"` | no |
 | <a name="input_lambda_function_name"></a> [lambda\_function\_name](#input\_lambda\_function\_name) | lambda function name, also prefixes the IAM and log group names | `string` | `"cloud-public-quarkus-lambda-api-gateway-rest"` | no |
+| <a name="input_lambda_insights_enabled"></a> [lambda\_insights\_enabled](#input\_lambda\_insights\_enabled) | Attach the AWS-owned Lambda Insights layer (not available on the Floci emulator, see tests/) | `bool` | `true` | no |
 | <a name="input_lambda_package_path"></a> [lambda\_package\_path](#input\_lambda\_package\_path) | Lambda package built by `task <sample>:package`, relative to this directory | `string` | `"../target/function.zip"` | no |
 
 ## Outputs

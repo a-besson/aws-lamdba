@@ -1,23 +1,23 @@
 package com.aws.lambda.springboot.simpledemo;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.springframework.cloud.function.adapter.aws.FunctionInvoker;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.springframework.cloud.function.adapter.aws.FunctionInvoker;
 
 /**
  * Drives the real Lambda entry point ({@code FunctionInvoker::handleRequest}), the handler
- * configured in terraform/lambda.tf, with the same event as {@code src/test/resources/payload.json}.
- * The active function is selected like on AWS, through {@code spring.cloud.function.definition}.
+ * configured in terraform/lambda.tf, with the same event as {@code
+ * src/test/resources/payload.json}. The active function is selected like on AWS, through {@code
+ * spring.cloud.function.definition}.
  */
 class FunctionInvokerHandlerIT {
 
@@ -48,7 +48,8 @@ class FunctionInvokerHandlerIT {
     }
 
     private static String payloadJson() throws IOException {
-        try (InputStream payload = FunctionInvokerHandlerIT.class.getResourceAsStream("/payload.json")) {
+        try (InputStream payload =
+                FunctionInvokerHandlerIT.class.getResourceAsStream("/payload.json")) {
             assertThat(payload).as("src/test/resources/payload.json").isNotNull();
             return new String(payload.readAllBytes(), StandardCharsets.UTF_8);
         }

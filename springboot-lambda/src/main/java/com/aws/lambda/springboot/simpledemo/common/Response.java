@@ -1,5 +1,3 @@
 package com.aws.lambda.springboot.simpledemo.common;
 
-public record Response(Integer statusCode,
-                        String body) {
-}
+public record Response(Integer statusCode, String body) {}

@@ -5,5 +5,4 @@ import io.quarkus.test.junit.TestProfile;
 
 @QuarkusIntegrationTest
 @TestProfile(ErrorLambdaProfile.class)
-public class ErrorLambdaIT extends ErrorLambdaTest {
-}
+public class ErrorLambdaIT extends ErrorLambdaTest {}

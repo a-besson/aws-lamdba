@@ -1,5 +1,8 @@
 package com.aws.lambda.springboot.simpledemo;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -8,16 +11,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.TestPropertySource;
 
-import java.util.function.Function;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 @TestPropertySource(properties = "spring.cloud.function.definition=stream")
 class StreamFunctionTest {
 
-    @Autowired
-    private FunctionCatalog catalog;
+    @Autowired private FunctionCatalog catalog;
 
     @Test
     void streamUppercasesRawPayload() {

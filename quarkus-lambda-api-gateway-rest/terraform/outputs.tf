@@ -1,6 +1,6 @@
 
 output "aws_lambda_function" {
-  value       = aws_lambda_function.quarkus_lambda.arn
+  value       = module.lambda.lambda_function_arn
   description = "Quarkus Lambda ARN"
 }
 

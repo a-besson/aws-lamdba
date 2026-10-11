@@ -15,8 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 @LambdaTracer
 public class DemoLambda implements RequestHandler<Request, Response> {
 
-    @Inject
-    ProcessingService service;
+    @Inject ProcessingService service;
 
     @Override
     public Response handleRequest(Request request, Context ctx) {

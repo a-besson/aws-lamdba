@@ -1,5 +1,7 @@
 package com.aws.lambda.springboot.rest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.amazonaws.serverless.exceptions.ContainerInitializationException;
 import com.amazonaws.serverless.proxy.model.ApiGatewayRequestIdentity;
 import com.amazonaws.serverless.proxy.model.AwsProxyRequest;
@@ -9,8 +11,6 @@ import com.amazonaws.serverless.proxy.model.Headers;
 import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Drives an {@link AwsProxyRequest} through {@link SpringBootLambdaContainerHandler} - the same

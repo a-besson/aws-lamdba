@@ -4,11 +4,10 @@ import com.aws.lambda.springboot.simpledemo.aspect.LambdaTracer;
 import com.aws.lambda.springboot.simpledemo.common.Request;
 import com.aws.lambda.springboot.simpledemo.common.Response;
 import com.aws.lambda.springboot.simpledemo.service.ProcessingService;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.function.Function;
 
 @Slf4j
 @Component("demo")

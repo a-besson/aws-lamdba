@@ -13,8 +13,7 @@ import jakarta.inject.Named;
 @LambdaTracer
 public class ErrorLambda implements RequestHandler<Request, Response> {
 
-    @Inject
-    ProcessingService service;
+    @Inject ProcessingService service;
 
     @Override
     public Response handleRequest(Request input, Context context) {

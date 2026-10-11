@@ -27,7 +27,7 @@ resource "aws_api_gateway_integration" "lambda_integration" {
   http_method             = aws_api_gateway_method.proxy.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.quarkus_lambda.invoke_arn
+  uri                     = module.lambda.lambda_function_invoke_arn
 }
 
 resource "aws_api_gateway_deployment" "api_deploy" {
@@ -69,6 +69,7 @@ resource "aws_api_gateway_stage" "stage" {
   }
 }
 
+# INFO execution logs need the account-wide CloudWatch role: apply infra/apigateway-account/ first (singleton per region)
 resource "aws_api_gateway_method_settings" "all" {
   rest_api_id = aws_api_gateway_rest_api.my_api.id
   stage_name  = aws_api_gateway_stage.stage.stage_name
@@ -84,52 +85,8 @@ resource "aws_api_gateway_method_settings" "all" {
 resource "aws_lambda_permission" "apigw_lambda" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.quarkus_lambda.function_name
+  function_name = module.lambda.lambda_function_name
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_api_gateway_rest_api.my_api.execution_arn}/*/*/*"
-}
-
-resource "aws_iam_role" "api_gateway_account_role" {
-  name = "${var.lambda_function_name}-apigw-account"
-  assume_role_policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Sid" : "",
-        "Effect" : "Allow",
-        "Principal" : {
-          "Service" : "apigateway.amazonaws.com"
-        },
-        "Action" : "sts:AssumeRole"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy" "api_gateway_cloudwatch_policy" {
-  name = "${var.lambda_function_name}-apigw-cloudwatch"
-  role = aws_iam_role.api_gateway_account_role.id
-  policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:DescribeLogGroups",
-          "logs:DescribeLogStreams",
-          "logs:PutLogEvents",
-          "logs:GetLogEvents",
-          "logs:FilterLogEvents"
-        ],
-        "Resource" : "*"
-      }
-    ]
-  })
-}
-
-resource "aws_api_gateway_account" "api_gateway_account" {
-  cloudwatch_role_arn = aws_iam_role.api_gateway_account_role.arn
 }

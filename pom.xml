@@ -32,6 +32,9 @@
         <shade-plugin.version>3.6.2</shade-plugin.version>
         <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
         <checkstyle.version>14.3.0</checkstyle.version>
+        <spotless-plugin.version>3.10.4</spotless-plugin.version>
+        <!-- 1.36+ fails inside spotless-maven-plugin 3.10.4 (InvocationTargetException on every file) -->
+        <google-java-format.version>1.35.0</google-java-format.version>
 
         <!-- -DskipTests skips both layers, -DskipUTs only the unit tests (surefire), -DskipITs only the integration tests (failsafe) -->
         <skipTests>false</skipTests>
@@ -60,6 +63,10 @@
         <tomcat-embed.version>10.1.60</tomcat-embed.version>
         <aws-serverless-java-container.version>2.1.5</aws-serverless-java-container.version>
         <aws-lambda-java-core.version>1.4.0</aws-lambda-java-core.version>
+
+        <!-- integration tests: AWS SDK v2 clients driving the Floci emulator (Lambda, API Gateway) -->
+        <aws-sdk.version>2.55.14</aws-sdk.version>
+        <floci.image>floci/floci:2.2.0</floci.image>
     </properties>
 
     <dependencyManagement>
@@ -123,6 +130,11 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${surefire-plugin.version}</version>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <floci.image>${floci.image}</floci.image>
+                        </systemPropertyVariables>
+                    </configuration>
                     <executions>
                         <execution>
                             <goals>
@@ -153,6 +165,32 @@
                     <executions>
                         <execution>
                             <id>checkstyle</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>com.diffplug.spotless</groupId>
+                    <artifactId>spotless-maven-plugin</artifactId>
+                    <version>${spotless-plugin.version}</version>
+                    <configuration>
+                        <java>
+                            <includes>
+                                <include>src/**/*.java</include>
+                            </includes>
+                            <googleJavaFormat>
+                                <version>${google-java-format.version}</version>
+                                <!-- 4-space indentation like .editorconfig -->
+                                <style>AOSP</style>
+                            </googleJavaFormat>
+                        </java>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>spotless-check</id>
                             <phase>validate</phase>
                             <goals>
                                 <goal>check</goal>

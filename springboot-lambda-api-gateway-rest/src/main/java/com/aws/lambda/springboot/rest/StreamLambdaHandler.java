@@ -6,19 +6,19 @@ import com.amazonaws.serverless.proxy.model.AwsProxyResponse;
 import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Lambda entry point: an explicit {@link RequestStreamHandler} initializing
- * {@link SpringBootLambdaContainerHandler}, running the {@link Application} Spring MVC app
- * behind API Gateway's proxy integration.
+ * Lambda entry point: an explicit {@link RequestStreamHandler} initializing {@link
+ * SpringBootLambdaContainerHandler}, running the {@link Application} Spring MVC app behind API
+ * Gateway's proxy integration.
  */
 public class StreamLambdaHandler implements RequestStreamHandler {
 
-    private static final SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> HANDLER;
+    private static final SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse>
+            HANDLER;
 
     static {
         try {
@@ -29,7 +29,8 @@ public class StreamLambdaHandler implements RequestStreamHandler {
     }
 
     @Override
-    public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context) throws IOException {
+    public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context)
+            throws IOException {
         HANDLER.proxyStream(inputStream, outputStream, context);
     }
 }

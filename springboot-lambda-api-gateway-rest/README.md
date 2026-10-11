@@ -10,6 +10,7 @@ integration. Deployed as a shaded jar on the `java21` runtime.
 ## Prerequisites
 
 * Java 21 and Maven (`task setup` at the repository root installs the tooling)
+* Docker or Podman, for the Floci integration tests (`task spring-rest:it`)
 * an AWS account and session, only to deploy
 
 ## Getting started
@@ -28,9 +29,14 @@ curl -X PUT http://localhost:8080/demo -H 'content-type: application/json' -d '{
 
 ```shell
 task spring-rest:test       # unit tests (*Test, surefire): @WebMvcTest on GET, POST and PUT /demo
-task spring-rest:it         # integration tests (*IT, failsafe): API Gateway proxy events through the real handlers
+task spring-rest:it         # integration tests (*IT, failsafe): API Gateway proxy events through the real handlers, and FlociApiGatewayIT on the Floci emulator
+task spring-rest:tf:test      # terraform test: the stack applied on a throwaway Floci container (no AWS account)
 task spring-rest:package    # shaded jar target/springboot-lambda-api-gateway-rest.jar
 ```
+
+`FlociApiGatewayIT` deploys the shaded jar and an API Gateway REST API wired like the Terraform stack (`{proxy+}`,
+`ANY`, Lambda proxy integration) to the [Floci](https://floci.io) emulator, then calls `/demo` over HTTP. See the
+root README for the container engine setup.
 
 ## Deploy to AWS with Terraform
 
@@ -44,6 +50,10 @@ task spring-rest:tf:apply         # WARNING: billable resources
 task spring-rest:invoke           # call the deployed sample
 task spring-rest:tf:destroy       # clean up
 ```
+
+API Gateway execution logs need the account-wide CloudWatch role: apply `infra/apigateway-account/` once first
+(`task apigw-account:tf:apply`, see the root README). `task spring-rest:tf:init` needs the shared state backend
+(`backend.hcl`).
 
 `tf:apply` builds the artifact first (`package` dependency). Example: `task spring-rest:tf:plan -- -var aws_profile=my-profile`.
 
@@ -74,7 +84,7 @@ artillery run src/test/resources/lambda-load-test.yml --target https://<api-id>.
 springboot-lambda-api-gateway-rest/
 ├── Taskfile.yml                 # build, test, it, dev, package, tf:*, invoke
 ├── src/main/java/.../rest       # Application, RestApiDemo, StreamLambdaHandler (Lambda entry point)
-├── src/test/java/.../rest       # RestApiDemoTest (WebMvcTest), StreamLambdaHandlerIT, PayloadJsonHandlerIT
+├── src/test/java/.../rest       # RestApiDemoTest (WebMvcTest), StreamLambdaHandlerIT, PayloadJsonHandlerIT, FlociApiGatewayIT + FlociEmulator
 ├── src/test/resources           # payload.json (API Gateway proxy event), lambda-load-test.yml
 └── terraform/                   # Lambda, REST API, stage, IAM, logs, optional custom domain
 ```

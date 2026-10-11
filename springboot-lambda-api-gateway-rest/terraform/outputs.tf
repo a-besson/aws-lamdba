@@ -1,6 +1,6 @@
 
 output "aws_lambda_function" {
-  value       = aws_lambda_function.springboot_lambda.arn
+  value       = module.lambda.lambda_function_arn
   description = "Spring Boot Lambda ARN"
 }
 

@@ -10,7 +10,7 @@ Simple Quarkus Lambda using the `quarkus-amazon-lambda` extension, deployed as a
 ## Prerequisites
 
 * Java 21 and Maven (`task setup` at the repository root installs the tooling)
-* Docker or Podman, for the native build (`task quarkus:package`)
+* Docker or Podman, for the Floci integration tests (`task quarkus:it`) and the native build (`task quarkus:package`)
 * an AWS account and session, only to deploy
 
 ## Getting started
@@ -22,7 +22,8 @@ task quarkus:dev        # live coding, mock event server on http://localhost:808
 curl -d '{"body":"hello lambda"}' -X POST http://localhost:8080
 
 task quarkus:test       # unit tests (*Test, surefire)
-task quarkus:it         # integration tests (*IT, failsafe) on the packaged JVM artifact
+task quarkus:it         # integration tests (*IT, failsafe): packaged JVM artifact, and FlociLambdaIT on the Floci emulator
+task quarkus:tf:test      # terraform test: the stack applied on a throwaway Floci container (no AWS account)
 task quarkus:package    # native zip target/function.zip (container build)
 task quarkus:package-jvm
 ```
@@ -30,6 +31,10 @@ task quarkus:package-jvm
 The active handler is selected by `quarkus.lambda.handler` (`src/main/resources/application.properties`,
 default `demo`): `demo` echoes the request body, `stream` uppercases the raw payload, `error` always
 throws `RuntimeException("Should be unused")`.
+
+`FlociLambdaIT` deploys the JVM `target/function.zip` to the [Floci](https://floci.io) emulator on the `java21`
+runtime (Terraform deploys the native zip on `provided.al2023`, which needs a Linux build) and invokes the
+`demo`, `stream` and `error` handlers through the Lambda API. See the root README for the container engine setup.
 
 ## Deploy to AWS with Terraform
 
@@ -47,7 +52,8 @@ task quarkus:tf:destroy       # clean up
 `tf:apply` builds the artifact first (`package` dependency). Example: `task quarkus:tf:plan -- -var aws_profile=my-profile`.
 
 Resources: S3 bucket for the package, Lambda (X-Ray tracing, Lambda Insights layer), Function URL,
-CloudWatch log group and a dedicated IAM role. Example call, as run by `task quarkus:invoke`:
+CloudWatch log group and a dedicated IAM role, through the `terraform-aws-modules` `s3-bucket` and `lambda` modules.
+`task quarkus:tf:init` needs the shared state backend (`backend.hcl`, see the root README). Example call, as run by `task quarkus:invoke`:
 
 ```bash
 curl -X POST '<lambda-function-url>' \
@@ -68,7 +74,7 @@ artillery run src/test/resources/lambda-load-test.yml --target https://<function
 quarkus-lambda/
 ├── Taskfile.yml                 # build, test, it, dev, package, tf:*, invoke
 ├── src/main/java/.../simpledemo # DemoLambda, StreamLambda, ErrorLambda, ProcessingService, LambdaTracer interceptor
-├── src/test/java/.../simpledemo # *Test (QuarkusTest) and *IT (QuarkusIntegrationTest) per handler
+├── src/test/java/.../simpledemo # *Test (QuarkusTest), *IT (QuarkusIntegrationTest) per handler, FlociLambdaIT + FlociEmulator
 ├── src/test/resources           # payload.json, local.http, lambda-load-test.yml
 └── terraform/                   # Lambda, Function URL, IAM, logs
 ```

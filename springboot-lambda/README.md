@@ -9,6 +9,7 @@ Lambda Function URL.
 ## Prerequisites
 
 * Java 21 and Maven (`task setup` at the repository root installs the tooling)
+* Docker or Podman, for the Floci integration tests (`task spring:it`)
 * an AWS account and session, only to deploy
 
 ## Getting started
@@ -17,12 +18,18 @@ All commands run from the repository root through [Task](https://taskfile.dev).
 
 ```shell
 task spring:test       # unit tests (*Test, surefire): functions through the FunctionCatalog
-task spring:it         # integration tests (*IT, failsafe): FunctionInvoker fed with src/test/resources/payload.json
+task spring:it         # integration tests (*IT, failsafe): FunctionInvoker fed with src/test/resources/payload.json, and FlociLambdaIT on the Floci emulator
 task spring:package    # shaded jar target/springboot-lambda.jar
 ```
 
 This module is a Spring Cloud Function without web server, so there is no `dev` task: its local
 execution goes through `task spring:it`, which drives the real `FunctionInvoker` entry point.
+
+`task spring:tf:test` runs `terraform test` (`terraform/tests/floci.tftest.hcl`): the whole stack is applied on a throwaway Floci container with fake credentials and a placeholder package, then asserted. It needs no AWS session and no build, and CI runs it in the `terraform-test` job. The Lambda Insights layer is skipped there (`lambda_insights_enabled = false`, an AWS-owned layer Floci cannot serve). It checks the wiring of the resources, not their IAM behaviour.
+
+`FlociLambdaIT` deploys `target/springboot-lambda.jar` to the [Floci](https://floci.io) emulator with the settings of
+the Terraform stack (`java21`, `FunctionInvoker::handleRequest`, `SPRING_CLOUD_FUNCTION_DEFINITION`) and invokes the
+`demo` and `error` functions through the Lambda API. See the root README for the container engine setup.
 
 ### Selecting a different function
 
@@ -44,6 +51,8 @@ task spring:tf:apply         # WARNING: billable resources
 task spring:invoke           # call the deployed sample
 task spring:tf:destroy       # clean up
 ```
+
+`task spring:tf:init` needs the shared state backend (`backend.hcl`, see the root README).
 
 `tf:apply` builds the artifact first (`package` dependency). Example: `task spring:tf:plan -- -var aws_profile=my-profile`.
 
@@ -70,7 +79,7 @@ artillery run src/test/resources/lambda-load-test.yml --target https://<function
 springboot-lambda/
 ├── Taskfile.yml                 # build, test, it, package, tf:*, invoke
 ├── src/main/java/.../simpledemo # DemoFunction, StreamFunction, ErrorFunction, ProcessingService, LambdaTracer aspect
-├── src/test/java/.../simpledemo # *Test (FunctionCatalog) and FunctionInvokerHandlerIT
+├── src/test/java/.../simpledemo # *Test (FunctionCatalog), FunctionInvokerHandlerIT, FlociLambdaIT + FlociEmulator
 ├── src/test/resources           # payload.json, lambda-load-test.yml
 └── terraform/                   # Lambda, Function URL, IAM, logs
 ```

@@ -5,9 +5,7 @@ import com.amazonaws.services.lambda.runtime.CognitoIdentity;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 
-/**
- * Minimal {@link Context} for tests that call a Lambda entry point directly.
- */
+/** Minimal {@link Context} for tests that call a Lambda entry point directly. */
 final class NoOpContext implements Context {
 
     @Override
@@ -64,12 +62,10 @@ final class NoOpContext implements Context {
     public LambdaLogger getLogger() {
         return new LambdaLogger() {
             @Override
-            public void log(String message) {
-            }
+            public void log(String message) {}
 
             @Override
-            public void log(byte[] message) {
-            }
+            public void log(byte[] message) {}
         };
     }
 }

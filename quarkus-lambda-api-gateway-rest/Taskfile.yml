@@ -9,7 +9,7 @@ vars:
 
 tasks:
   build:
-    desc: Run Checkstyle and compile main and test sources (JVM)
+    desc: Run Checkstyle, the Spotless check and compile main and test sources (JVM)
     cmds:
       - "{{.MVN}} compile test-compile"
 
@@ -19,9 +19,11 @@ tasks:
       - "{{.MVN}} test"
 
   it:
-    desc: Package the JVM artifact and run the integration tests only (*IT, failsafe)
+    desc: Package the JVM artifact and run the integration tests only (*IT, failsafe, Floci in a container)
     cmds:
-      - "{{.MVN}} verify -DskipUTs=true"
+      - |
+        {{.CONTAINER_ENV}}
+        {{.MVN}} verify -DskipUTs=true
 
   # No `dev` task: quarkus:dev fails on quarkus-amazon-lambda-rest 3.39.1 ("Key already registered
   # quarkus.http.local-base-uri" from AbstractLambdaPollLoop). Local execution goes through the
@@ -38,17 +40,37 @@ tasks:
       - "{{.MVN}} package -DskipTests"
 
   tf:init:
-    desc: Initialise Terraform (local state)
+    desc: Initialise Terraform on the shared S3 state backend (needs backend.hcl at the repo root)
     dir: "{{.TF_DIR}}"
+    preconditions:
+      - sh: test -f {{.ROOT_DIR}}/backend.hcl
+        msg: "backend.hcl is missing: run `task state:tf:apply`, then copy backend.hcl.example to backend.hcl"
     cmds:
-      - terraform init -input=false
+      - terraform init -input=false -backend-config={{.ROOT_DIR}}/backend.hcl -backend-config="key={{.MODULE}}/terraform.tfstate"
+
+  tf:migrate-state:
+    desc: Copy an existing local terraform.tfstate of this stack to the S3 backend (one-off, asks for confirmation)
+    dir: "{{.TF_DIR}}"
+    interactive: true
+    preconditions:
+      - sh: test -f {{.ROOT_DIR}}/backend.hcl
+        msg: "backend.hcl is missing: run `task state:tf:apply`, then copy backend.hcl.example to backend.hcl"
+    cmds:
+      - terraform init -input=false -migrate-state -backend-config={{.ROOT_DIR}}/backend.hcl -backend-config="key={{.MODULE}}/terraform.tfstate"
+
+  tf:test:
+    desc: Apply the stack on a throwaway Floci container with `terraform test` (no AWS account, no package needed)
+    cmds:
+      - task: :tf-floci-test
+        vars:
+          TF_DIR: "{{.TF_DIR}}"
 
   tf:plan:
     desc: Plan the AWS stack (needs target/function.zip and an AWS session)
     dir: "{{.TF_DIR}}"
     deps: [tf:init]
     preconditions:
-      - sh: test -f ../target/function.zip
+      - sh: test -f {{.TASKFILE_DIR}}/target/function.zip
         msg: "target/function.zip is missing: run `task quarkus-rest:package` first"
     cmds:
       - terraform plan -input=false {{.CLI_ARGS}}

@@ -1,7 +1,6 @@
 package com.aws.lambda.quarkus.simpledemo;
 
 import io.quarkus.test.junit.QuarkusTestProfile;
-
 import java.util.Collections;
 import java.util.Map;
 

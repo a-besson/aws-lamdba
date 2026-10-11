@@ -1,0 +1,38 @@
+# API Gateway account settings (CloudWatch Logs role, one per account and region), shared by the REST samples
+version: "3"
+
+vars:
+  MODULE: apigateway-account
+  TF_DIR: "{{.TASKFILE_DIR}}/terraform"
+
+tasks:
+  tf:init:
+    desc: Initialise Terraform on the shared S3 state backend (needs backend.hcl at the repo root)
+    dir: "{{.TF_DIR}}"
+    preconditions:
+      - sh: test -f {{.ROOT_DIR}}/backend.hcl
+        msg: "backend.hcl is missing: run `task state:tf:apply`, then copy backend.hcl.example to backend.hcl"
+    cmds:
+      - terraform init -input=false -backend-config={{.ROOT_DIR}}/backend.hcl -backend-config="key={{.MODULE}}/terraform.tfstate"
+
+  tf:plan:
+    desc: Plan the account settings (needs an AWS session)
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    cmds:
+      - terraform plan -input=false {{.CLI_ARGS}}
+
+  tf:apply:
+    desc: "WARNING: changes the API Gateway account settings of the whole region (apply once, before the REST samples)"
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    cmds:
+      - terraform apply -input=false {{.CLI_ARGS}}
+
+  tf:destroy:
+    desc: "WARNING: removes the CloudWatch Logs role of API Gateway for the whole region"
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    prompt: This removes the API Gateway CloudWatch role of the region, REST APIs lose their execution logs. Continue?
+    cmds:
+      - terraform destroy -input=false -auto-approve {{.CLI_ARGS}}

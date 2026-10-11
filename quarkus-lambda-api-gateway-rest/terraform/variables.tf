@@ -35,3 +35,9 @@ variable "domain_name" {
   default     = "aws-lab-demo.com"
   description = "domain name"
 }
+
+variable "lambda_insights_enabled" {
+  type        = bool
+  default     = true
+  description = "Attach the AWS-owned Lambda Insights layer (not available on the Floci emulator, see tests/)"
+}

@@ -58,6 +58,9 @@ nb-configuration.xml
 # Provider lock files are not versioned: the providers are pinned exactly instead
 **/.terraform.lock.hcl
 
+# Shared S3 backend settings (bucket name), see backend.hcl.example
+backend.hcl
+
 # .tfstate files
 *.tfstate
 *.tfstate.*

@@ -3,6 +3,14 @@ version: "3"
 
 vars:
   KICS_IMAGE: docker.io/checkmarx/kics:v2.1.20
+  # Integration tests start the Floci emulator with Testcontainers. Podman is reached through the machine socket
+  # (Ryuk cannot run there); a Docker host already configured in DOCKER_HOST is used as is.
+  CONTAINER_ENV: |
+    if [ -z "${DOCKER_HOST:-}" ] && command -v podman >/dev/null 2>&1; then
+      podman machine start >/dev/null 2>&1 || true
+      export DOCKER_HOST="unix://$(podman machine inspect --format '{{"{{"}}.ConnectionInfo.PodmanSocket.Path{{"}}"}}')"
+      export TESTCONTAINERS_RYUK_DISABLED=true
+    fi
 
 includes:
   quarkus:
@@ -17,6 +25,12 @@ includes:
   spring-rest:
     taskfile: springboot-lambda-api-gateway-rest/Taskfile.yml
     dir: springboot-lambda-api-gateway-rest
+  apigw-account:
+    taskfile: infra/apigateway-account/Taskfile.yml
+    dir: infra/apigateway-account
+  state:
+    taskfile: infra/state-bucket/Taskfile.yml
+    dir: infra/state-bucket
 
 tasks:
   default:
@@ -26,9 +40,14 @@ tasks:
     silent: true
 
   build:
-    desc: Run Checkstyle and compile main and test sources of every sample (JVM)
+    desc: Run Checkstyle, the Spotless check and compile main and test sources of every sample (JVM)
     cmds:
       - mvn -B -ntp compile test-compile
+
+  format:
+    desc: Format the Java sources of every sample with Spotless (google-java-format, AOSP style)
+    cmds:
+      - mvn -B -ntp spotless:apply
 
   test:
     desc: Run the unit tests of every sample (*Test, surefire)
@@ -36,9 +55,30 @@ tasks:
       - mvn -B -ntp test
 
   it:
-    desc: Package the JVM artifacts and run the integration tests of every sample (*IT, failsafe)
+    desc: Package the JVM artifacts and run the integration tests of every sample (*IT, failsafe, Floci in a container)
     cmds:
-      - mvn -B -ntp verify -DskipUTs=true
+      - |
+        {{.CONTAINER_ENV}}
+        mvn -B -ntp verify -DskipUTs=true
+
+  tf-floci-test:
+    internal: true
+    desc: Run `terraform test` of the stack in TF_DIR against a throwaway Floci container (fake credentials, no AWS account)
+    cmds:
+      - |
+        {{.CONTAINER_ENV}}
+        CLI="$(command -v docker || command -v podman)"
+        IMAGE="$(sed -n 's#^ *<floci.image>\(.*\)</floci.image>.*#\1#p' {{.ROOT_DIR}}/pom.xml | head -n 1)"
+        NAME="floci-tf-test-$$"
+        TF_DATA_DIR="$(mktemp -d)" # keeps the S3-backed .terraform of tf:init untouched
+        export TF_DATA_DIR
+        trap '"$CLI" rm -f "$NAME" >/dev/null 2>&1; rm -rf "$TF_DATA_DIR"' EXIT
+        "$CLI" run -d --name "$NAME" -p 4566:4566 -e FLOCI_RUN_AS_ROOT=true --security-opt label=disable \
+          -v /var/run/docker.sock:/var/run/docker.sock "$IMAGE" >/dev/null
+        for _ in $(seq 1 60); do curl -sf http://localhost:4566/_floci/health >/dev/null && break; sleep 1; done
+        cd "{{.TF_DIR}}"
+        terraform init -backend=false -input=false
+        terraform test
 
   setup:
     desc: Install workstation dependencies (Brewfile), git hooks and TFLint plugins, then check the setup

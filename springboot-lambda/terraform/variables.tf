@@ -29,3 +29,9 @@ variable "lambda_function_name" {
   default     = "cloud-public-springboot-lambda"
   description = "lambda function name, also prefixes the IAM and log group names"
 }
+
+variable "lambda_insights_enabled" {
+  type        = bool
+  default     = true
+  description = "Attach the AWS-owned Lambda Insights layer (not available on the Floci emulator, see tests/)"
+}

@@ -1,5 +1,7 @@
 package com.aws.lambda.springboot.rest;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import com.amazonaws.serverless.proxy.RequestReader;
 import com.amazonaws.services.lambda.runtime.Context;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,8 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
 @RestController
@@ -38,8 +38,12 @@ public class RestApiDemo {
     private void logInvocation(HttpServletRequest request) {
         Context ctx = (Context) request.getAttribute(RequestReader.LAMBDA_CONTEXT_PROPERTY);
         if (ctx != null) {
-            log.info("Function name: {}, Function version: {}, Request id: {} Identity: {}, Client ctx: {}",
-                    ctx.getFunctionName(), ctx.getFunctionVersion(), ctx.getAwsRequestId(), ctx.getIdentity(),
+            log.info(
+                    "Function name: {}, Function version: {}, Request id: {} Identity: {}, Client ctx: {}",
+                    ctx.getFunctionName(),
+                    ctx.getFunctionVersion(),
+                    ctx.getAwsRequestId(),
+                    ctx.getIdentity(),
                     ctx.getClientContext());
         } else {
             log.info("No AWS Lambda context available (running outside Lambda)");

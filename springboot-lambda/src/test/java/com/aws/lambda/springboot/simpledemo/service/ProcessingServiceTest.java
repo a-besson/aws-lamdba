@@ -1,9 +1,9 @@
 package com.aws.lambda.springboot.simpledemo.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.aws.lambda.springboot.simpledemo.common.Request;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class ProcessingServiceTest {
 

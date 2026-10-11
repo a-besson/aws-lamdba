@@ -1,12 +1,12 @@
 
 output "aws_lambda_function" {
-  value       = aws_lambda_function.springboot_lambda.arn
+  value       = module.lambda.lambda_function_arn
   description = "Spring Boot Lambda ARN"
 }
 output "aws_lambda_function_url" {
   value       = <<EOF
-        Lambda URL: ${aws_lambda_function_url.springboot_lambda_url.function_url}
-        curl -X POST '${aws_lambda_function_url.springboot_lambda_url.function_url}' \
+        Lambda URL: ${module.lambda.lambda_function_url}
+        curl -X POST '${module.lambda.lambda_function_url}' \
              -H 'content-type: application/json' \
              -d '{ "body": "hello lambda" }'
     EOF
@@ -15,5 +15,5 @@ output "aws_lambda_function_url" {
 
 output "lambda_function_url" {
   description = "Function URL of the Lambda (read by `task invoke`)"
-  value       = aws_lambda_function_url.springboot_lambda_url.function_url
+  value       = module.lambda.lambda_function_url
 }
