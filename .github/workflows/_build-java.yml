@@ -1,0 +1,198 @@
+# Reusable build for one Java sample: lint, compile, unit tests, integration tests and package.
+# No cloud credentials: Terraform is formatted, validated and linted, and `terraform test` applies the stack on the
+# Floci emulator with fake credentials (never planned or applied on a real account).
+# The Maven invocations are the ones of the module Taskfiles (`task <namespace>:build|test|it|package`).
+name: build-java
+
+on:
+  workflow_call:
+    inputs:
+      module:
+        description: Maven module directory (also the Terraform stack parent)
+        required: true
+        type: string
+      native:
+        description: Build the native Lambda zip (container build) instead of the shaded jar
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint (${{ inputs.module }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      MODULE: ${{ inputs.module }}
+      TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: 1.16.4
+      - uses: terraform-linters/setup-tflint@6ffdbaa3be476b3431f7275c26966ef32ff60337 # v6.3.2
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .terraform.d/plugin-cache
+          key: tf-plugins-${{ inputs.module }}-${{ hashFiles(format('{0}/terraform/**/*.tf', inputs.module)) }}
+          restore-keys: tf-plugins-${{ inputs.module }}-
+      - name: Prepare plugin cache
+        run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
+      - name: Lint - checkstyle
+        run: mvn -B -ntp -pl "$MODULE" -am validate
+      - name: Lint - terraform fmt
+        working-directory: ${{ inputs.module }}/terraform
+        run: terraform fmt -check -recursive
+      - name: Syntax - terraform init (no backend)
+        working-directory: ${{ inputs.module }}/terraform
+        run: terraform init -backend=false -input=false
+      - name: Syntax - terraform validate
+        working-directory: ${{ inputs.module }}/terraform
+        run: terraform validate
+      - name: Lint - tflint
+        working-directory: ${{ inputs.module }}/terraform
+        run: |
+          tflint --init --config="$GITHUB_WORKSPACE/.tflint.hcl"
+          tflint --config="$GITHUB_WORKSPACE/.tflint.hcl"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  terraform-test:
+    name: terraform-test (${{ inputs.module }})
+    needs: lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      MODULE: ${{ inputs.module }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: 1.16.4
+          terraform_wrapper: false
+      # Same container as `task <namespace>:tf:test`; the image is the one pinned in the root pom.
+      - name: Floci - start the emulator
+        run: |
+          IMAGE="$(sed -n 's#^ *<floci.image>\(.*\)</floci.image>.*#\1#p' pom.xml | head -n 1)"
+          docker run -d --name floci -p 4566:4566 -e FLOCI_RUN_AS_ROOT=true \
+            -v /var/run/docker.sock:/var/run/docker.sock "$IMAGE"
+          for _ in $(seq 1 60); do curl -sf http://localhost:4566/_floci/health >/dev/null && exit 0; sleep 1; done
+          docker logs floci
+          exit 1
+      - name: Tests - terraform test (fake credentials, Floci only)
+        working-directory: ${{ inputs.module }}/terraform
+        run: |
+          terraform init -backend=false -input=false
+          terraform test
+      - name: Floci - logs
+        if: failure()
+        run: docker logs floci
+
+  compile:
+    name: compile (${{ inputs.module }})
+    needs: lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      MODULE: ${{ inputs.module }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Build - compile main and test sources
+        run: mvn -B -ntp -pl "$MODULE" -am compile test-compile
+
+  unit-test:
+    name: unit-test (${{ inputs.module }})
+    needs: compile
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      MODULE: ${{ inputs.module }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Tests - unit tests (surefire)
+        run: mvn -B -ntp -pl "$MODULE" -am test
+      - name: Reports - upload surefire and failsafe reports
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ inputs.module }}-unit-test-reports
+          path: |
+            ${{ inputs.module }}/target/surefire-reports
+            ${{ inputs.module }}/target/failsafe-reports
+          if-no-files-found: ignore
+          retention-days: 3
+
+  integration-test:
+    name: integration-test (${{ inputs.module }})
+    needs: unit-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      MODULE: ${{ inputs.module }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      # @QuarkusIntegrationTest runs the packaged JVM artifact: this package is not the deployed one.
+      # The Floci ITs start the emulator (and the Lambda runtime images) with the Docker of the runner.
+      - name: Tests - integration tests (failsafe only)
+        run: mvn -B -ntp -pl "$MODULE" -am verify -DskipUTs=true
+      - name: Reports - upload surefire and failsafe reports
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ inputs.module }}-integration-test-reports
+          path: |
+            ${{ inputs.module }}/target/surefire-reports
+            ${{ inputs.module }}/target/failsafe-reports
+          if-no-files-found: ignore
+          retention-days: 3
+
+  package:
+    name: package (${{ inputs.module }})
+    needs: [integration-test, terraform-test]
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ inputs.native && 45 || 20 }}
+    env:
+      MODULE: ${{ inputs.module }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Build - native Lambda zip (container build)
+        if: inputs.native
+        run: mvn -B -ntp -pl "$MODULE" -am package -DskipTests -Dnative -Dquarkus.native.container-build=true
+      - name: Build - shaded Lambda jar
+        if: ${{ !inputs.native }}
+        run: mvn -B -ntp -pl "$MODULE" -am package -DskipTests
+      - name: Package - upload the deployable artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ inputs.module }}-package
+          path: ${{ inputs.native && format('{0}/target/function.zip', inputs.module) || format('{0}/target/{0}.jar', inputs.module) }}
+          if-no-files-found: error
+          retention-days: 3

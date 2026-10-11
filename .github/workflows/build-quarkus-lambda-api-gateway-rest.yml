@@ -1,0 +1,25 @@
+name: build-quarkus-lambda-api-gateway-rest
+
+on:
+  pull_request:
+    paths:
+      - "quarkus-lambda-api-gateway-rest/**"
+      - "pom.xml"
+      - "checkstyle.xml"
+      - ".tflint.hcl"
+      - ".github/workflows/_build-java.yml"
+      - ".github/workflows/build-quarkus-lambda-api-gateway-rest.yml"
+
+concurrency:
+  group: build-quarkus-lambda-api-gateway-rest-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/_build-java.yml
+    with:
+      module: quarkus-lambda-api-gateway-rest
+      native: true

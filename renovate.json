@@ -1,7 +1,17 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "customManagers": [
+    {
+      "description": "Floci emulator image used by the integration tests",
+      "customType": "regex",
+      "managerFilePatterns": ["/^pom\\.xml$/"],
+      "matchStrings": ["<floci\\.image>(?<depName>[^:<]+):(?<currentValue>[^<]+)</floci\\.image>"],
+      "datasourceTemplate": "docker"
+    }
   ],
   "automerge": true,
   "automergeType": "pr",

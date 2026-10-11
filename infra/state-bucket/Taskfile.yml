@@ -1,0 +1,26 @@
+# Versioned, encrypted S3 bucket holding the Terraform state of every sample (local state: chicken and egg)
+version: "3"
+
+vars:
+  TF_DIR: "{{.TASKFILE_DIR}}/terraform"
+
+tasks:
+  tf:init:
+    desc: Initialise Terraform (local state)
+    dir: "{{.TF_DIR}}"
+    cmds:
+      - terraform init -input=false
+
+  tf:plan:
+    desc: Plan the state bucket (needs terraform.tfvars with state_bucket and an AWS session)
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    cmds:
+      - terraform plan -input=false {{.CLI_ARGS}}
+
+  tf:apply:
+    desc: "WARNING: creates the S3 bucket holding the Terraform state (one-off, then copy backend_config to backend.hcl)"
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    cmds:
+      - terraform apply -input=false {{.CLI_ARGS}}

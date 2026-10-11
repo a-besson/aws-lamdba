@@ -1,0 +1,60 @@
+# Repository-wide security scans: KICS (IaC) + Trivy (config, vulnerabilities, secrets).
+name: check-cyber
+
+on:
+  pull_request:
+
+concurrency:
+  group: check-cyber-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  kics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write # upload SARIF
+      actions: read # code scanning reads the workflow run
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: KICS scan
+        run: |
+          mkdir -p "$RUNNER_TEMP/kics"
+          docker run --rm -v "$PWD:/path:ro" -v "$RUNNER_TEMP/kics:/out" docker.io/checkmarx/kics:v2.1.20 \
+            scan -p /path --config /path/kics.config -o /out --report-formats sarif,json
+      - uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        if: always() && hashFiles('**/kics/results.sarif') != ''
+        with:
+          sarif_file: ${{ runner.temp }}/kics/results.sarif
+          category: kics
+
+  trivy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write # upload SARIF
+      actions: read # code scanning reads the workflow run
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: config
+          trivy-config: trivy.yaml
+          format: sarif
+          output: trivy-config.sarif
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        if: ${{ !cancelled() }}
+        with:
+          scan-type: fs
+          scanners: vuln,secret
+          trivy-config: trivy.yaml
+      - uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        if: always() && hashFiles('trivy-config.sarif') != ''
+        with:
+          sarif_file: trivy-config.sarif
+          category: trivy

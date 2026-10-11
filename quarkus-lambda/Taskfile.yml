@@ -1,0 +1,104 @@
+# Quarkus Lambda (Function URL, provided.al2023 native zip)
+version: "3"
+
+vars:
+  MODULE: quarkus-lambda
+  # always go through the root reactor: no prior `mvn install` of the parent is needed
+  MVN: mvn -B -ntp -f {{.ROOT_DIR}}/pom.xml -pl {{.MODULE}} -am
+  TF_DIR: "{{.TASKFILE_DIR}}/terraform"
+
+tasks:
+  build:
+    desc: Run Checkstyle, the Spotless check and compile main and test sources (JVM)
+    cmds:
+      - "{{.MVN}} compile test-compile"
+
+  test:
+    desc: Run the unit tests (*Test, surefire)
+    cmds:
+      - "{{.MVN}} test"
+
+  it:
+    desc: Package the JVM artifact and run the integration tests only (*IT, failsafe, Floci in a container)
+    cmds:
+      - |
+        {{.CONTAINER_ENV}}
+        {{.MVN}} verify -DskipUTs=true
+
+  dev:
+    desc: Start Quarkus dev mode (live coding, mock event server on http://localhost:8080)
+    interactive: true
+    cmds:
+      # no -am: a plugin goal would also run on the parent pom
+      - mvn -B -ntp -f {{.ROOT_DIR}}/pom.xml -pl {{.MODULE}} quarkus:dev
+
+  package:
+    desc: Build the native Lambda zip (target/function.zip) in a Docker/Podman builder container
+    cmds:
+      - "{{.MVN}} package -DskipTests -Dnative -Dquarkus.native.container-build=true"
+
+  package-jvm:
+    desc: Build the JVM Lambda package without tests (diagnostic, not what Terraform deploys)
+    cmds:
+      - "{{.MVN}} package -DskipTests"
+
+  tf:init:
+    desc: Initialise Terraform on the shared S3 state backend (needs backend.hcl at the repo root)
+    dir: "{{.TF_DIR}}"
+    preconditions:
+      - sh: test -f {{.ROOT_DIR}}/backend.hcl
+        msg: "backend.hcl is missing: run `task state:tf:apply`, then copy backend.hcl.example to backend.hcl"
+    cmds:
+      - terraform init -input=false -backend-config={{.ROOT_DIR}}/backend.hcl -backend-config="key={{.MODULE}}/terraform.tfstate"
+
+  tf:migrate-state:
+    desc: Copy an existing local terraform.tfstate of this stack to the S3 backend (one-off, asks for confirmation)
+    dir: "{{.TF_DIR}}"
+    interactive: true
+    preconditions:
+      - sh: test -f {{.ROOT_DIR}}/backend.hcl
+        msg: "backend.hcl is missing: run `task state:tf:apply`, then copy backend.hcl.example to backend.hcl"
+    cmds:
+      - terraform init -input=false -migrate-state -backend-config={{.ROOT_DIR}}/backend.hcl -backend-config="key={{.MODULE}}/terraform.tfstate"
+
+  tf:test:
+    desc: Apply the stack on a throwaway Floci container with `terraform test` (no AWS account, no package needed)
+    cmds:
+      - task: :tf-floci-test
+        vars:
+          TF_DIR: "{{.TF_DIR}}"
+
+  tf:plan:
+    desc: Plan the AWS stack (needs target/function.zip and an AWS session)
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    preconditions:
+      - sh: test -f {{.TASKFILE_DIR}}/target/function.zip
+        msg: "target/function.zip is missing: run `task quarkus:package` first"
+    cmds:
+      - terraform plan -input=false {{.CLI_ARGS}}
+
+  tf:apply:
+    desc: "WARNING: provisions billable AWS resources (Lambda, Function URL, IAM, CloudWatch, S3)"
+    dir: "{{.TF_DIR}}"
+    deps: [package, tf:init]
+    cmds:
+      - terraform apply -input=false {{.CLI_ARGS}}
+
+  tf:destroy:
+    desc: "WARNING: destroys the AWS stack of this sample"
+    dir: "{{.TF_DIR}}"
+    deps: [tf:init]
+    prompt: This destroys the AWS resources of quarkus-lambda. Continue?
+    cmds:
+      - terraform destroy -input=false -auto-approve {{.CLI_ARGS}}
+
+  invoke:
+    desc: "WARNING: calls the deployed Lambda (Function URL, billed per invocation)"
+    dir: "{{.TF_DIR}}"
+    cmds:
+      - |
+        curl -sS -X POST "$(terraform output -raw lambda_function_url)" \
+          -H 'content-type: application/json' \
+          -d '{"body": "hello lambda"}'
+        echo

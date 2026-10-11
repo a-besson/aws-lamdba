@@ -1,3 +1,13 @@
+# Config
+PROMPT.md
+
+# Taskfile
+.task/
+.taskrc.yml
+
+# Pre-commit cache
+.precommitcache/
+
 #Maven
 target/
 pom.xml.tag
@@ -44,8 +54,12 @@ nb-configuration.xml
 
 # Terraform
 # Local .terraform directories
-*.hcl
 **/.terraform/*
+# Provider lock files are not versioned: the providers are pinned exactly instead
+**/.terraform.lock.hcl
+
+# Shared S3 backend settings (bucket name), see backend.hcl.example
+backend.hcl
 
 # .tfstate files
 *.tfstate

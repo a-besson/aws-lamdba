@@ -1,0 +1,5 @@
+# Copy to backend.hcl (git-ignored) with the output of `task state:tf:apply` (backend_config).
+# The state key is set per stack by `task <namespace>:tf:init`.
+bucket  = "example-terraform-state-bucket"
+region  = "eu-west-3"
+encrypt = true
