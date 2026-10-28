@@ -26,7 +26,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/kics"
           docker run --rm -v "$PWD:/path:ro" -v "$RUNNER_TEMP/kics:/out" docker.io/checkmarx/kics:v2.1.20 \
             scan -p /path --config /path/kics.config -o /out --report-formats sarif,json
-      - uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+      - uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         if: always() && hashFiles('**/kics/results.sarif') != ''
         with:
           sarif_file: ${{ runner.temp }}/kics/results.sarif
@@ -53,7 +53,7 @@ jobs:
           scan-type: fs
           scanners: vuln,secret
           trivy-config: trivy.yaml
-      - uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+      - uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         if: always() && hashFiles('trivy-config.sarif') != ''
         with:
           sarif_file: trivy-config.sarif
