@@ -63,6 +63,12 @@
         <log4j2.version>2.26.1</log4j2.version>
         <!-- CVE-2026-65182, CVE-2026-65905, CVE-2026-68525: spring-boot-dependencies 3.5.16 pins Tomcat 10.1.55 -->
         <tomcat-embed.version>10.1.61</tomcat-embed.version>
+        <!-- GHSA-c4c3-7fpv-j4q5 and 10 others: spring-boot-dependencies 3.5.16 pins Netty 4.1.135 (same 4.1 line) -->
+        <netty-spring.version>4.1.137.Final</netty-spring.version>
+        <!-- test scope only (Testcontainers / AWS SDK apache5-client): GHSA-j288-q9x7-2f5v, GHSA-hjcp-jmpx-g3qm, GHSA-v3jc-474w-2wm6, GHSA-hf6x-8p5f-cgmf -->
+        <commons-lang3.version>3.18.0</commons-lang3.version>
+        <httpclient5.version>5.6.3</httpclient5.version>
+        <httpcore5.version>5.4.3</httpcore5.version>
         <aws-serverless-java-container.version>2.1.7</aws-serverless-java-container.version>
         <aws-lambda-java-core.version>1.4.1</aws-lambda-java-core.version>
 
