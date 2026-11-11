@@ -6,7 +6,7 @@
 | Name | Version |
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.16 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | 6.68.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | 6.71.0 |
 | <a name="requirement_external"></a> [external](#requirement\_external) | 2.4.2 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | 2.9.1 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | 3.3.2 |
@@ -15,36 +15,36 @@
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.68.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.71.0 |
 
 ## Modules
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_lambda"></a> [lambda](#module\_lambda) | terraform-aws-modules/lambda/aws | 8.12.0 |
-| <a name="module_lambda_bucket"></a> [lambda\_bucket](#module\_lambda\_bucket) | terraform-aws-modules/s3-bucket/aws | 5.16.2 |
+| <a name="module_lambda"></a> [lambda](#module\_lambda) | terraform-aws-modules/lambda/aws | 8.13.0 |
+| <a name="module_lambda_bucket"></a> [lambda\_bucket](#module\_lambda\_bucket) | terraform-aws-modules/s3-bucket/aws | 5.17.0 |
 
 ## Resources
 
 | Name | Type |
 | ---- | ---- |
-| [aws_acm_certificate.api](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/acm_certificate) | resource |
-| [aws_acm_certificate_validation.api](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/acm_certificate_validation) | resource |
-| [aws_api_gateway_base_path_mapping.api](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_base_path_mapping) | resource |
-| [aws_api_gateway_deployment.api_deploy](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_deployment) | resource |
-| [aws_api_gateway_domain_name.api](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_domain_name) | resource |
-| [aws_api_gateway_integration.lambda_integration](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_integration) | resource |
-| [aws_api_gateway_method.proxy](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_method) | resource |
-| [aws_api_gateway_method_settings.all](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_method_settings) | resource |
-| [aws_api_gateway_resource.root](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_resource) | resource |
-| [aws_api_gateway_rest_api.my_api](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_rest_api) | resource |
-| [aws_api_gateway_stage.stage](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/api_gateway_stage) | resource |
-| [aws_cloudwatch_log_group.main_api_gw](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/cloudwatch_log_group) | resource |
-| [aws_lambda_permission.apigw_lambda](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/lambda_permission) | resource |
-| [aws_route53_record.api](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/route53_record) | resource |
-| [aws_route53_record.api_validation](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/route53_record) | resource |
-| [aws_s3_object.deploy_lambda_to_s3](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/s3_object) | resource |
-| [aws_route53_zone.public](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/data-sources/route53_zone) | data source |
+| [aws_acm_certificate.api](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/acm_certificate) | resource |
+| [aws_acm_certificate_validation.api](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/acm_certificate_validation) | resource |
+| [aws_api_gateway_base_path_mapping.api](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/api_gateway_base_path_mapping) | resource |
+| [aws_api_gateway_deployment.api_deploy](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/api_gateway_deployment) | resource |
+| [aws_api_gateway_domain_name.api](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/api_gateway_domain_name) | resource |
+| [aws_api_gateway_integration.lambda_integration](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/api_gateway_integration) | resource |
+| [aws_api_gateway_method.proxy](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/api_gateway_method) | resource |
+| [aws_api_gateway_method_settings.all](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/api_gateway_method_settings) | resource |
+| [aws_api_gateway_resource.root](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/api_gateway_resource) | resource |
+| [aws_api_gateway_rest_api.my_api](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/api_gateway_rest_api) | resource |
+| [aws_api_gateway_stage.stage](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/api_gateway_stage) | resource |
+| [aws_cloudwatch_log_group.main_api_gw](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/cloudwatch_log_group) | resource |
+| [aws_lambda_permission.apigw_lambda](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/lambda_permission) | resource |
+| [aws_route53_record.api](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/route53_record) | resource |
+| [aws_route53_record.api_validation](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/route53_record) | resource |
+| [aws_s3_object.deploy_lambda_to_s3](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/s3_object) | resource |
+| [aws_route53_zone.public](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/data-sources/route53_zone) | data source |
 
 ## Inputs
 
