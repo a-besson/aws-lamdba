@@ -6,7 +6,7 @@
 | Name | Version |
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.16 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | 6.68.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | 6.71.0 |
 | <a name="requirement_external"></a> [external](#requirement\_external) | 2.4.2 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | 2.9.1 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | 3.3.2 |
@@ -15,20 +15,20 @@
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.68.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.71.0 |
 
 ## Modules
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_lambda"></a> [lambda](#module\_lambda) | terraform-aws-modules/lambda/aws | 8.12.0 |
-| <a name="module_lambda_bucket"></a> [lambda\_bucket](#module\_lambda\_bucket) | terraform-aws-modules/s3-bucket/aws | 5.16.2 |
+| <a name="module_lambda"></a> [lambda](#module\_lambda) | terraform-aws-modules/lambda/aws | 8.13.0 |
+| <a name="module_lambda_bucket"></a> [lambda\_bucket](#module\_lambda\_bucket) | terraform-aws-modules/s3-bucket/aws | 5.17.0 |
 
 ## Resources
 
 | Name | Type |
 | ---- | ---- |
-| [aws_s3_object.deploy_lambda_to_s3](https://registry.terraform.io/providers/hashicorp/aws/6.68.0/docs/resources/s3_object) | resource |
+| [aws_s3_object.deploy_lambda_to_s3](https://registry.terraform.io/providers/hashicorp/aws/6.71.0/docs/resources/s3_object) | resource |
 
 ## Inputs
 
