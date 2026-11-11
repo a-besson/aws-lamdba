@@ -11,8 +11,8 @@
     <artifactId>springboot-lambda-api-gateway-rest</artifactId>
 
     <!--
-        Spring Boot BOM is imported here, not in the root pom, so the Quarkus and Spring
-        stacks never cross-contaminate each other's dependencyManagement.
+        Spring Boot / Spring Cloud BOMs are imported here, not in the root pom, so the Quarkus
+        and Spring stacks never cross-contaminate each other's dependencyManagement.
     -->
     <dependencyManagement>
         <dependencies>
@@ -44,21 +44,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <!-- Direct entries win over the imported BOM: Tomcat patch release of the same 10.1 line -->
+            <!-- aws-serverless-java-container-springboot4 pulls spring-cloud-function-serverless-web: take the patched release from the train -->
             <dependency>
-                <groupId>org.apache.tomcat.embed</groupId>
-                <artifactId>tomcat-embed-core</artifactId>
-                <version>${tomcat-embed.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.tomcat.embed</groupId>
-                <artifactId>tomcat-embed-el</artifactId>
-                <version>${tomcat-embed.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.tomcat.embed</groupId>
-                <artifactId>tomcat-embed-websocket</artifactId>
-                <version>${tomcat-embed.version}</version>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -66,11 +58,11 @@
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
         <dependency>
             <groupId>com.amazonaws.serverless</groupId>
-            <artifactId>aws-serverless-java-container-springboot3</artifactId>
+            <artifactId>aws-serverless-java-container-springboot4</artifactId>
             <version>${aws-serverless-java-container.version}</version>
         </dependency>
         <dependency>
@@ -80,6 +72,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- Floci emulator integration test: AWS SDK clients + container lifecycle -->
@@ -147,6 +144,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${spring-boot.version}</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -158,7 +162,8 @@
                             <shadedArtifactAttached>false</shadedArtifactAttached>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <!-- spring.factories is a properties file: duplicate keys must be merged, not appended -->
+                                <transformer implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
                                     <resource>META-INF/spring.factories</resource>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">

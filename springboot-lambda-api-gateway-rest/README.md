@@ -2,7 +2,7 @@
 
 Simple Spring Boot MVC Lambda behind API Gateway, functional equivalent of
 [`quarkus-lambda-api-gateway-rest`](../quarkus-lambda-api-gateway-rest/README.md), using
-`aws-serverless-java-container-springboot3` to run the app unmodified behind API Gateway's proxy
+`aws-serverless-java-container-springboot4` to run the app unmodified behind API Gateway's proxy
 integration. Deployed as a shaded jar on the `java21` runtime.
 
 > :warning: This sample could use some services/options not eligible to free account
@@ -18,7 +18,9 @@ integration. Deployed as a shaded jar on the `java21` runtime.
 All commands run from the repository root through [Task](https://taskfile.dev).
 
 Unlike `quarkus-lambda-api-gateway-rest`, this is a plain Spring MVC app, so it can run as a normal
-embedded-Tomcat web server for local testing:
+embedded-Tomcat web server for local testing. `task spring-rest:dev` excludes the serverless web container
+auto-configuration (`ServerlessAutoConfiguration`, from the Lambda handler library), which would otherwise
+replace Tomcat and leave nothing listening on port 8080:
 
 ```shell
 task spring-rest:dev
