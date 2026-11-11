@@ -53,7 +53,7 @@ resource "aws_s3_object" "deploy_lambda_to_s3" {
 #
 module "lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "8.12.0"
+  version = "8.13.0"
 
   function_name = var.lambda_function_name
   handler       = "not.used.in.provided.runtime"
