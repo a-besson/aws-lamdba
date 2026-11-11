@@ -6,7 +6,7 @@
 | Name | Version |
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.16 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | 6.68.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | 6.71.0 |
 
 ## Providers
 
@@ -16,7 +16,7 @@ No providers.
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_state_bucket"></a> [state\_bucket](#module\_state\_bucket) | terraform-aws-modules/s3-bucket/aws | 5.16.2 |
+| <a name="module_state_bucket"></a> [state\_bucket](#module\_state\_bucket) | terraform-aws-modules/s3-bucket/aws | 5.17.0 |
 
 ## Resources
 

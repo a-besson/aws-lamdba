@@ -29,8 +29,12 @@ tasks:
     desc: Run the app as a local web server (spring-boot:run on http://localhost:8080)
     interactive: true
     cmds:
-      # no -am: a plugin goal would also run on the parent pom
-      - mvn -B -ntp -f {{.ROOT_DIR}}/pom.xml -pl {{.MODULE}} spring-boot:run
+      # no -am: a plugin goal would also run on the parent pom.
+      # The serverless web container (spring-cloud-function-serverless-web, pulled by the Lambda
+      # handler library) replaces the embedded Tomcat unless its auto-configuration is excluded.
+      - >-
+        mvn -B -ntp -f {{.ROOT_DIR}}/pom.xml -pl {{.MODULE}} spring-boot:run
+        -Dspring-boot.run.arguments=--spring.autoconfigure.exclude=org.springframework.cloud.function.serverless.web.ServerlessAutoConfiguration
 
   package:
     desc: Build the shaded jar deployed to AWS Lambda (target/springboot-lambda-api-gateway-rest.jar)
