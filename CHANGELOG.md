@@ -2,7 +2,7 @@
 
 ## [2026-11-11] - Daily Log - Spring Boot 4 migration
 
-- **spring**: Spring Boot 4.1.2 with Spring Cloud 2025.1.4 (Spring Cloud Function 5.0.5, Spring Framework 7.0.10): `spring-boot-starter-aop` → `-aspectj`, `-web` → `-webmvc` (+ `-webmvc-test`, `@WebMvcTest` moved to `org.springframework.boot.webmvc.test.autoconfigure`), `aws-serverless-java-container-springboot3` 2.1.x → `-springboot4` 3.0.5; Tomcat and Netty come from the Boot BOM again (the Tomcat 10.1 pin is removed)
+- **spring**: Spring Boot 4.1.2 with Spring Cloud 2025.1.4 (Spring Cloud Function 5.0.5, Spring Framework 7.0.10): `spring-boot-starter-aop` → `-aspectj`, `-web` → `-webmvc` (+ `-webmvc-test`, `@WebMvcTest` moved to `org.springframework.boot.webmvc.test.autoconfigure`), `aws-serverless-java-container-springboot3` 2.1.x → `-springboot4` 3.0.5; the Tomcat 10.1, Jackson 2 and log4j pins are removed (Boot 4.1.2 manages Tomcat 11.0.27, Jackson 3.1.7 and log4j 2.25.5, no OSV finding left in the resolved trees)
 - **fix**: the shaded jars appended `META-INF/spring.factories`, so keys declared by several jars kept only their last declaration (`application.properties` was not loaded, `ConfigDataEnvironmentPostProcessor` and `LoggingApplicationListener` were dropped); now merged with Boot's `PropertiesMergingResourceTransformer`
 - **tooling**: `task spring-rest:dev` excludes the serverless web container auto-configuration that would replace the embedded Tomcat
 - **security**: Spring Framework CVE-2026-47884/47890 fixed by 7.0.x, `.trivyignore` entries removed (they expired on 2026-11-09)
