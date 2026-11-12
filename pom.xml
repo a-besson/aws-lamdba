@@ -51,6 +51,8 @@
         <jackson-bom.version>2.22.4</jackson-bom.version>
 
         <slf4j-jboss-logmanager.version>2.1.0.Final</slf4j-jboss-logmanager.version>
+        <!-- GHSA-xxph-c9ww-hj94 (HIGH): quarkus-junit pulls Guava 33.6.0-jre through maven-embedder (test scope only) -->
+        <guava.version>33.7.2-jre</guava.version>
         <lombok.version>1.18.48</lombok.version>
 
         <!-- spring boot samples: versions live here, BOMs are imported per-module so the -->
@@ -82,6 +84,11 @@
                 <scope>import</scope>
             </dependency>
 
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.jboss.slf4j</groupId>
                 <artifactId>slf4j-jboss-logmanager</artifactId>
