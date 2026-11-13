@@ -61,7 +61,7 @@
         <aws-lambda-java-core.version>1.4.1</aws-lambda-java-core.version>
 
         <!-- integration tests: AWS SDK v2 clients driving the Floci emulator (Lambda, API Gateway) -->
-        <aws-sdk.version>2.57.9</aws-sdk.version>
+        <aws-sdk.version>2.57.10</aws-sdk.version>
         <floci.image>floci/floci:2.4.0</floci.image>
     </properties>
 
