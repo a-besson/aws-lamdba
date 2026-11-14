@@ -13,6 +13,15 @@
       "datasourceTemplate": "docker"
     }
   ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/bower_components/**",
+    "**/vendor/**",
+    "**/examples/**",
+    "**/__tests__/**",
+    "**/test/**",
+    "**/__fixtures__/**"
+  ],
   "automerge": true,
   "automergeType": "pr",
   "automergeStrategy": "squash",
