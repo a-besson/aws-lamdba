@@ -6,6 +6,7 @@
 - **fix**: the shaded jars appended `META-INF/spring.factories`, so keys declared by several jars kept only their last declaration (`application.properties` was not loaded, `ConfigDataEnvironmentPostProcessor` and `LoggingApplicationListener` were dropped); now merged with Boot's `PropertiesMergingResourceTransformer`
 - **tooling**: `task spring-rest:dev` excludes the serverless web container auto-configuration that would replace the embedded Tomcat
 - **security**: Spring Framework CVE-2026-47884/47890 fixed by 7.0.x, `.trivyignore` entries removed (they expired on 2026-11-09)
+- **security**: Guava pinned to 33.7.2-jre for the Quarkus modules (GHSA-xxph-c9ww-hj94, test scope via quarkus-junit → maven-embedder); the Spring netty/commons-lang3/httpclient5/httpcore5 pins of #100 are dropped, Boot 4.1.2 already manages newer releases
 
 ## [2026-10-11] - Daily Log - Terraform tests on Floci, infra/ folder
 
