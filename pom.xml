@@ -48,7 +48,7 @@
 
         <!-- CVE-2026-89407, CVE-2026-89425, CVE-2026-68497, CVE-2026-91776, CVE-2026-91777: quarkus-bom 3.39.1 pins -->
         <!-- Jackson 2.22.0. Imported before quarkus-bom (first import wins), patch release of the same minor. -->
-        <jackson-bom.version>2.22.4</jackson-bom.version>
+        <jackson-bom.version>2.23.0</jackson-bom.version>
 
         <slf4j-jboss-logmanager.version>2.1.0.Final</slf4j-jboss-logmanager.version>
         <!-- GHSA-xxph-c9ww-hj94 (HIGH): quarkus-junit pulls Guava 33.6.0-jre through maven-embedder (test scope only) -->
