@@ -24,7 +24,7 @@ provider "aws" {
 #trivy:ignore:AVD-AWS-0132
 module "state_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "5.17.1"
+  version = "5.18.0"
 
   bucket = var.state_bucket
 
