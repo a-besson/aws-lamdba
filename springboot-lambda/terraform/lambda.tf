@@ -6,7 +6,7 @@
 #trivy:ignore:AVD-AWS-0132
 module "lambda_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "5.17.0"
+  version = "5.17.1"
 
   bucket = var.lambda_bucket
 
