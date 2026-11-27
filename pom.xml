@@ -58,7 +58,7 @@
         <!-- spring boot samples: versions live here, BOMs are imported per-module so the -->
         <!-- Quarkus and Spring stacks never share a dependencyManagement import -->
         <spring-boot.version>4.1.2</spring-boot.version>
-        <spring-cloud.version>2025.1.4</spring-cloud.version>
+        <spring-cloud.version>2025.1.5</spring-cloud.version>
         <aws-serverless-java-container.version>3.0.5</aws-serverless-java-container.version>
         <aws-lambda-java-core.version>1.4.1</aws-lambda-java-core.version>
 
